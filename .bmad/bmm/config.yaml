@@ -1,0 +1,17 @@
+# BMM Module Configuration
+# Generated for Task Analysis Project
+# Version: 6.0.0-alpha.12
+# Date: 2026-01-24T22:14:00.000Z
+
+project_name: taskanalysis-prj
+user_skill_level: intermediate
+sprint_artifacts: '{project-root}/docs/sprint-artifacts'
+tea_use_mcp_enhancements: false
+
+# Core Configuration Values
+bmad_folder: .bmad
+user_name: BMad
+communication_language: hungarian
+document_output_language: hungarian
+output_folder: '{project-root}/docs'
+install_user_docs: true
