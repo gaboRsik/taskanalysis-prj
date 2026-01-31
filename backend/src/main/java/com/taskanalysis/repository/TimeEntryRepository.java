@@ -14,4 +14,6 @@ public interface TimeEntryRepository extends JpaRepository<TimeEntry, Long> {
     
     Optional<TimeEntry> findFirstBySubtaskIdAndEndTimeIsNull(Long subtaskId);
     
+    List<TimeEntry> findByEndTimeIsNull();
+    
 }

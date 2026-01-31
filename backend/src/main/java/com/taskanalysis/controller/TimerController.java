@@ -29,17 +29,17 @@ public class TimerController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/stop/{subtaskId}")
-    public ResponseEntity<TimerResponse> stopTimer(@PathVariable Long subtaskId) {
+    @PostMapping("/stop")
+    public ResponseEntity<TimerResponse> stopTimer() {
         Long userId = getCurrentUserId();
-        TimerResponse response = timerService.stopTimer(userId, subtaskId);
+        TimerResponse response = timerService.stopCurrentTimer(userId);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/active/{taskId}")
-    public ResponseEntity<TimerResponse> getActiveTimer(@PathVariable Long taskId) {
+    @GetMapping("/active")
+    public ResponseEntity<TimerResponse> getActiveTimer() {
         Long userId = getCurrentUserId();
-        TimerResponse response = timerService.getActiveTimer(userId, taskId);
+        TimerResponse response = timerService.getActiveTimerForUser(userId);
         if (response == null) {
             return ResponseEntity.noContent().build();
         }

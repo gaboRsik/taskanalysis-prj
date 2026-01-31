@@ -104,6 +104,40 @@ public class TimerService {
     }
 
     @Transactional
+    public TimerResponse stopCurrentTimer(Long userId) {
+        // Find any running timer for this user
+        List<TimeEntry> runningEntries = timeEntryRepository.findByEndTimeIsNull();
+        
+        for (TimeEntry timeEntry : runningEntries) {
+            Subtask subtask = timeEntry.getSubtask();
+            if (subtask.getTask().getUser().getId().equals(userId)) {
+                LocalDateTime endTime = LocalDateTime.now();
+                timeEntry.setEndTime(endTime);
+                long durationSeconds = Duration.between(timeEntry.getStartTime(), endTime).getSeconds();
+                timeEntry.setDurationSeconds(durationSeconds);
+                TimeEntry saved = timeEntryRepository.save(timeEntry);
+                return mapToResponse(saved, subtask);
+            }
+        }
+        
+        throw new RuntimeException("No running timer found");
+    }
+
+    public TimerResponse getActiveTimerForUser(Long userId) {
+        // Find any running timer for this user
+        List<TimeEntry> runningEntries = timeEntryRepository.findByEndTimeIsNull();
+        
+        for (TimeEntry timeEntry : runningEntries) {
+            Subtask subtask = timeEntry.getSubtask();
+            if (subtask.getTask().getUser().getId().equals(userId)) {
+                return mapToResponse(timeEntry, subtask);
+            }
+        }
+        
+        return null;
+    }
+
+    @Transactional
     private void stopAllTimersForTask(Long taskId) {
         List<Subtask> subtasks = subtaskRepository.findByTaskId(taskId);
         LocalDateTime now = LocalDateTime.now();
@@ -128,10 +162,16 @@ public class TimerService {
             duration = Duration.between(timeEntry.getStartTime(), LocalDateTime.now()).getSeconds();
         }
 
+        Task task = subtask.getTask();
+        String taskTitle = task.getName();
+        String subtaskTitle = "Subtask #" + subtask.getSubtaskNumber();
+
         return new TimerResponse(
                 timeEntry.getId(),
                 subtask.getId(),
                 subtask.getSubtaskNumber(),
+                taskTitle,
+                subtaskTitle,
                 timeEntry.getStartTime(),
                 timeEntry.getEndTime(),
                 duration,

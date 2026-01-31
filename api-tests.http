@@ -1,0 +1,58 @@
+### Backend API Tests for Task Analysis
+### Base URL: http://localhost:8080/api
+
+### 1. Register a new user
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "test@example.com",
+  "password": "test123"
+}
+
+### 2. Login with the user
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "test123"
+}
+
+### 3. Create a category (replace YOUR_ACCESS_TOKEN with token from login)
+POST http://localhost:8080/api/categories
+Content-Type: application/json
+Authorization: Bearer YOUR_ACCESS_TOKEN
+
+{
+  "name": "Work"
+}
+
+### 4. Get all categories
+GET http://localhost:8080/api/categories
+Authorization: Bearer YOUR_ACCESS_TOKEN
+
+### 5. Create a task
+POST http://localhost:8080/api/tasks
+Content-Type: application/json
+Authorization: Bearer YOUR_ACCESS_TOKEN
+
+{
+  "name": "Test Task",
+  "description": "This is a test task",
+  "categoryId": 1,
+  "subtaskCount": 3
+}
+
+### 6. Get all tasks
+GET http://localhost:8080/api/tasks
+Authorization: Bearer YOUR_ACCESS_TOKEN
+
+### 7. Start timer for subtask 1
+POST http://localhost:8080/api/timer/start/1
+Authorization: Bearer YOUR_ACCESS_TOKEN
+
+### 8. Stop timer for subtask 1
+POST http://localhost:8080/api/timer/stop/1
+Authorization: Bearer YOUR_ACCESS_TOKEN

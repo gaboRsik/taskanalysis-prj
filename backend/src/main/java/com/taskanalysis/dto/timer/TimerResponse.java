@@ -14,6 +14,8 @@ public class TimerResponse {
     private Long timeEntryId;
     private Long subtaskId;
     private Integer subtaskNumber;
+    private String taskTitle;
+    private String subtaskTitle;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Long durationSeconds;
