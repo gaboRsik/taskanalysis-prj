@@ -2,6 +2,7 @@ package com.taskanalysis.service;
 
 import com.taskanalysis.dto.subtask.SubtaskResponse;
 import com.taskanalysis.dto.task.TaskRequest;
+import com.taskanalysis.dto.task.TaskUpdateRequest;
 import com.taskanalysis.dto.task.TaskResponse;
 import com.taskanalysis.entity.*;
 import com.taskanalysis.repository.*;
@@ -70,7 +71,7 @@ public class TaskService {
     }
 
     public List<TaskResponse> getUserTasks(Long userId) {
-        List<Task> tasks = taskRepository.findByUserId(userId);
+        List<Task> tasks = taskRepository.findByUserIdOrderByCreatedAtDesc(userId);
         return tasks.stream()
                 .map(task -> {
                     List<Subtask> subtasks = subtaskRepository.findByTaskId(task.getId());
@@ -92,7 +93,7 @@ public class TaskService {
     }
 
     @Transactional
-    public TaskResponse updateTask(Long userId, Long taskId, TaskRequest request) {
+    public TaskResponse updateTask(Long userId, Long taskId, TaskUpdateRequest request) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
 
@@ -100,8 +101,13 @@ public class TaskService {
             throw new RuntimeException("Access denied");
         }
 
-        task.setName(request.getName());
-        task.setDescription(request.getDescription());
+        if (request.getName() != null) {
+            task.setName(request.getName());
+        }
+        
+        if (request.getDescription() != null) {
+            task.setDescription(request.getDescription());
+        }
 
         if (request.getCategoryId() != null) {
             Category category = categoryRepository.findById(request.getCategoryId())
@@ -111,9 +117,8 @@ public class TaskService {
                 throw new RuntimeException("Access denied to category");
             }
             task.setCategory(category);
-        } else {
-            task.setCategory(null);
         }
+        // Ne változtassuk meg a kategóriát, ha nincs megadva categoryId
 
         Task updated = taskRepository.save(task);
         List<Subtask> subtasks = subtaskRepository.findByTaskId(taskId);

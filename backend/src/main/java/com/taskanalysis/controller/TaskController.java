@@ -1,6 +1,7 @@
 package com.taskanalysis.controller;
 
 import com.taskanalysis.dto.task.TaskRequest;
+import com.taskanalysis.dto.task.TaskUpdateRequest;
 import com.taskanalysis.dto.task.TaskResponse;
 import com.taskanalysis.entity.User;
 import com.taskanalysis.repository.UserRepository;
@@ -50,7 +51,7 @@ public class TaskController {
     @PutMapping("/{id}")
     public ResponseEntity<TaskResponse> updateTask(
             @PathVariable Long id,
-            @Valid @RequestBody TaskRequest request) {
+            @Valid @RequestBody TaskUpdateRequest request) {
         Long userId = getCurrentUserId();
         TaskResponse response = taskService.updateTask(userId, id, request);
         return ResponseEntity.ok(response);

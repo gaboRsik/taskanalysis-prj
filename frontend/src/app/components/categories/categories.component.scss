@@ -1,0 +1,11 @@
+.list-group-item {
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: #f8f9fa;
+  }
+}
+
+.btn-group {
+  gap: 0.25rem;
+}

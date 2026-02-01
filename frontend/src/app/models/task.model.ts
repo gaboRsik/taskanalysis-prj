@@ -23,7 +23,7 @@ export interface TaskRequest {
   name: string;
   description?: string;
   categoryId?: number;
-  subtaskCount: number;
+  subtaskCount?: number;
 }
 
 export interface Subtask {

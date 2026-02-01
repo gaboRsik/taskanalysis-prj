@@ -1,20 +1,9 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="#">Task Analysis</a>
-    <div class="navbar-nav ms-auto">
-      <span class="navbar-text text-white me-3">
-        Welcome, {{ currentUser?.name }}!
-      </span>
-      <button class="btn btn-outline-light btn-sm" (click)="logout()">Logout</button>
-    </div>
-  </div>
-</nav>
-
 <div class="container-fluid mt-4">
-  <!-- Active Timer -->
-  <div *ngIf="activeTimer" class="alert alert-info d-flex justify-content-between align-items-center">
+  <!-- Active Timer Alert -->
+  <div *ngIf="activeTimer" class="alert alert-info d-flex justify-content-between align-items-center mb-4">
     <div>
-      <strong>Active Timer:</strong> {{ activeTimer.taskTitle }} - {{ activeTimer.subtaskTitle }}
+      <strong><i class="bi bi-stopwatch"></i> Active Timer:</strong> 
+      {{ activeTimer.taskTitle }} - {{ activeTimer.subtaskTitle }}
       <span class="badge bg-primary ms-2">{{ elapsedTime }}</span>
     </div>
     <button class="btn btn-danger btn-sm" (click)="stopTimer()">
@@ -23,182 +12,126 @@
   </div>
 
   <div class="row">
-    <!-- Sidebar -->
+    <!-- Task Selector Sidebar -->
     <div class="col-md-3">
-      <div class="card mb-3">
+      <div class="card">
         <div class="card-header bg-primary text-white">
-          <h5 class="mb-0">Categories</h5>
+          <h5 class="mb-0"><i class="bi bi-list-check"></i> Select Task</h5>
         </div>
         <div class="card-body">
-          <!-- Category Filter -->
-          <div class="mb-3">
-            <label class="form-label">Filter by Category</label>
-            <select 
-              class="form-select" 
-              [(ngModel)]="selectedCategoryId" 
-              (change)="onCategoryFilterChange()"
-            >
-              <option [ngValue]="null">All Categories</option>
-              <option *ngFor="let category of categories" [ngValue]="category.id">
-                {{ category.name }}
-              </option>
-            </select>
-          </div>
+          <select 
+            class="form-select mb-3" 
+            [(ngModel)]="selectedTaskId" 
+            (change)="onTaskChange()"
+          >
+            <option [ngValue]="null">-- Select a task --</option>
+            <option *ngFor="let task of tasks" [ngValue]="task.id">
+              {{ task.name }}
+            </option>
+          </select>
 
-          <!-- Create Category -->
-          <div class="mb-3">
-            <label class="form-label">New Category</label>
-            <div class="input-group">
-              <input 
-                type="text" 
-                class="form-control" 
-                [(ngModel)]="newCategoryName" 
-                placeholder="Category name"
-                (keyup.enter)="createCategory()"
-              />
-              <button 
-                class="btn btn-primary" 
-                (click)="createCategory()"
-                [disabled]="!newCategoryName.trim()"
+          <div *ngIf="selectedTask" class="mt-3">
+            <div class="alert alert-light">
+              <strong>Status:</strong>
+              <span 
+                class="badge ms-2"
+                [class.bg-secondary]="selectedTask.status === TaskStatus.NOT_STARTED"
+                [class.bg-warning]="selectedTask.status === TaskStatus.IN_PROGRESS"
+                [class.bg-success]="selectedTask.status === TaskStatus.COMPLETED"
               >
-                <i class="bi bi-plus"></i>
-              </button>
+                {{ selectedTask.status }}
+              </span>
+            </div>
+            <div class="alert alert-light">
+              <strong>Subtasks:</strong> 
+              <span class="badge bg-primary">{{ selectedTask.subtasks.length }}</span>
             </div>
           </div>
+        </div>
+      </div>
 
-          <!-- Category List -->
-          <div class="list-group">
-            <a 
-              *ngFor="let category of categories" 
-              href="#" 
-              class="list-group-item list-group-item-action"
-              [class.active]="selectedCategoryId === category.id"
-              (click)="selectedCategoryId = category.id; onCategoryFilterChange(); $event.preventDefault()"
-            >
-              {{ category.name }}
-            </a>
-          </div>
+      <div class="card mt-3">
+        <div class="card-body text-center">
+          <p class="text-muted mb-2">
+            <i class="bi bi-info-circle"></i> Need to manage tasks?
+          </p>
+          <a routerLink="/tasks" class="btn btn-outline-primary btn-sm w-100">
+            <i class="bi bi-list-task"></i> Go to Tasks
+          </a>
         </div>
       </div>
     </div>
 
-    <!-- Main Content -->
+    <!-- Main Content - Subtasks -->
     <div class="col-md-9">
-      <!-- Create Task -->
-      <div class="card mb-3">
-        <div class="card-header bg-success text-white">
-          <h5 class="mb-0">Create New Task</h5>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-4">
-              <input 
-                type="text" 
-                class="form-control" 
-                [(ngModel)]="newTaskTitle" 
-                placeholder="Task title"
-                (keyup.enter)="createTask()"
-              />
-            </div>
-            <div class="col-md-3">
-              <select 
-                class="form-select" 
-                [(ngModel)]="newTaskCategoryId"
-              >
-                <option [ngValue]="null">Select category</option>
-                <option *ngFor="let category of categories" [ngValue]="category.id">
-                  {{ category.name }}
-                </option>
-              </select>
-            </div>
-            <div class="col-md-2">
-              <input 
-                type="number" 
-                class="form-control" 
-                [(ngModel)]="newTaskSubtaskCount" 
-                placeholder="Subtasks"
-                min="1"
-                value="3"
-              />
-            </div>
-            <div class="col-md-3">
-              <button 
-                class="btn btn-success w-100" 
-                (click)="createTask()"
-                [disabled]="!newTaskTitle.trim() || !newTaskCategoryId || !newTaskSubtaskCount"
-              >
-                Create
-              </button>
-            </div>
-          </div>
+      <div *ngIf="!selectedTask" class="card">
+        <div class="card-body text-center py-5">
+          <i class="bi bi-arrow-left-circle display-1 text-muted"></i>
+          <h4 class="mt-3 text-muted">Select a task from the left to start time tracking</h4>
+          <p class="text-muted">Choose a task to view and manage its subtasks</p>
         </div>
       </div>
 
-      <!-- Tasks List -->
-      <div class="card">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">Tasks</h5>
-          <span class="badge bg-light text-dark">{{ filteredTasks.length }} tasks</span>
+      <div *ngIf="selectedTask" class="card">
+        <div class="card-header bg-gradient">
+          <h5 class="mb-0">
+            <i class="bi bi-check2-square"></i> {{ selectedTask.name }}
+          </h5>
+          <small class="text-muted">Time Tracking & Subtasks</small>
         </div>
         <div class="card-body">
-          <div *ngIf="filteredTasks.length === 0" class="alert alert-info">
-            No tasks found. Create a new task to get started!
+          <div *ngIf="!selectedTask.subtasks || selectedTask.subtasks.length === 0" class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i> No subtasks found for this task.
           </div>
 
-          <div *ngFor="let task of filteredTasks" class="card mb-3">
-            <div class="card-header d-flex justify-content-between align-items-center">
-              <div>
-                <h6 class="mb-0">{{ task.name }}</h6>
-                <small class="text-muted">{{ getCategoryName(task.categoryId) }}</small>
-              </div>
-              <span 
-                class="badge"
-                [class.bg-secondary]="task.status === TaskStatus.NOT_STARTED"
-                [class.bg-warning]="task.status === TaskStatus.IN_PROGRESS"
-                [class.bg-success]="task.status === TaskStatus.COMPLETED"
-              >
-                {{ task.status }}
-              </span>
-            </div>
-            <div class="card-body">
-              <div class="row">
-                <div class="col-md-12">
-                  <h6>Subtasks:</h6>
-                  <div class="list-group">
-                    <div 
-                      *ngFor="let subtask of task.subtasks" 
-                      class="list-group-item d-flex justify-content-between align-items-center"
+          <div class="list-group">
+            <div 
+              *ngFor="let subtask of selectedTask.subtasks" 
+              class="list-group-item"
+            >
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="flex-grow-1">
+                  <h6 class="mb-1">
+                    <i class="bi bi-circle-fill me-2" 
+                       [class.text-secondary]="subtask.status === 'NOT_STARTED'"
+                       [class.text-warning]="subtask.status === 'IN_PROGRESS'"
+                       [class.text-success]="subtask.status === 'COMPLETED'"
+                       style="font-size: 0.6rem;">
+                    </i>
+                    Subtask #{{ subtask.subtaskNumber }}
+                  </h6>
+                  <div class="d-flex gap-3 mt-2">
+                    <span class="badge bg-light text-dark">
+                      <i class="bi bi-bar-chart"></i> Planned: {{ subtask.plannedPoints || 0 }}
+                    </span>
+                    <span *ngIf="subtask.actualPoints && subtask.actualPoints > 0" class="badge bg-info">
+                      <i class="bi bi-check-circle"></i> Actual: {{ subtask.actualPoints }}
+                    </span>
+                    <span 
+                      class="badge"
+                      [class.bg-secondary]="subtask.status === 'NOT_STARTED'"
+                      [class.bg-warning]="subtask.status === 'IN_PROGRESS'"
+                      [class.bg-success]="subtask.status === 'COMPLETED'"
                     >
-                      <div>
-                        <strong>Subtask #{{ subtask.subtaskNumber }}</strong>
-                        <span 
-                          class="badge ms-2"
-                          [class.bg-secondary]="subtask.status === 'NOT_STARTED'"
-                          [class.bg-warning]="subtask.status === 'IN_PROGRESS'"
-                          [class.bg-success]="subtask.status === 'COMPLETED'"
-                        >
-                          {{ subtask.status }}
-                        </span>
-                        <div class="text-muted small">
-                          Points: {{ subtask.plannedPoints || 0 }}
-                          <span *ngIf="subtask.actualPoints && subtask.actualPoints > 0"> | Actual: {{ subtask.actualPoints }}</span>
-                        </div>
-                      </div>
-                      <button 
-                        class="btn btn-sm"
-                        [class.btn-primary]="!activeTimer || activeTimer.subtaskId !== subtask.id"
-                        [class.btn-danger]="activeTimer?.subtaskId === subtask.id"
-                        (click)="activeTimer?.subtaskId === subtask.id ? stopTimer() : startTimer(subtask.id)"
-                      >
-                        <i 
-                          class="bi"
-                          [class.bi-play-circle]="!activeTimer || activeTimer.subtaskId !== subtask.id"
-                          [class.bi-stop-circle]="activeTimer?.subtaskId === subtask.id"
-                        ></i>
-                        {{ activeTimer?.subtaskId === subtask.id ? 'Stop' : 'Start' }}
-                      </button>
-                    </div>
+                      {{ subtask.status }}
+                    </span>
                   </div>
+                </div>
+                <div>
+                  <button 
+                    class="btn"
+                    [class.btn-primary]="!activeTimer || activeTimer.subtaskId !== subtask.id"
+                    [class.btn-danger]="activeTimer?.subtaskId === subtask.id"
+                    [class.btn-lg]="activeTimer?.subtaskId === subtask.id"
+                    (click)="activeTimer?.subtaskId === subtask.id ? stopTimer() : startTimer(subtask.id)"
+                  >
+                    <i 
+                      class="bi me-1"
+                      [class.bi-play-circle-fill]="!activeTimer || activeTimer.subtaskId !== subtask.id"
+                      [class.bi-stop-circle-fill]="activeTimer?.subtaskId === subtask.id"
+                    ></i>
+                    {{ activeTimer?.subtaskId === subtask.id ? 'Stop' : 'Start' }}
+                  </button>
                 </div>
               </div>
             </div>

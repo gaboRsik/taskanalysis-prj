@@ -1,37 +1,30 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
-import { CategoryService } from '../../services/category.service';
 import { TaskService } from '../../services/task.service';
 import { TimerService } from '../../services/timer.service';
-import { Category, Task, TaskStatus, TimerResponse } from '../../models/task.model';
+import { Task, TaskStatus, TimerResponse } from '../../models/task.model';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   currentUser: any;
-  categories: Category[] = [];
   tasks: Task[] = [];
-  filteredTasks: Task[] = [];
-  selectedCategoryId: number | null = null;
+  selectedTask: Task | null = null;
+  selectedTaskId: number | null = null;
   
   activeTimer: TimerResponse | null = null;
   timerInterval: any;
   elapsedTime: string = '00:00:00';
-  
-  newCategoryName: string = '';
-  newTaskTitle: string = '';
-  newTaskCategoryId: number | null = null;
-  newTaskSubtaskCount: number = 3;
 
   private destroy$ = new Subject<void>();
 
@@ -39,7 +32,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   constructor(
     private authService: AuthService,
-    private categoryService: CategoryService,
     private taskService: TaskService,
     private timerService: TimerService,
     private router: Router
@@ -50,7 +42,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       user => this.currentUser = user
     );
 
-    this.loadCategories();
     this.loadTasks();
     this.checkActiveTimer();
   }
@@ -63,66 +54,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  loadCategories(): void {
-    this.categoryService.getCategories().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (categories) => {
-        this.categories = categories;
-      },
-      error: (error) => console.error('Error loading categories:', error)
-    });
-  }
-
   loadTasks(): void {
     this.taskService.getTasks().pipe(takeUntil(this.destroy$)).subscribe({
       next: (tasks) => {
         this.tasks = tasks;
-        this.filterTasks();
+        // If a task was selected, update it
+        if (this.selectedTaskId) {
+          this.selectedTask = this.tasks.find(t => t.id === this.selectedTaskId) || null;
+        }
       },
       error: (error) => console.error('Error loading tasks:', error)
     });
   }
 
-  filterTasks(): void {
-    if (this.selectedCategoryId === null) {
-      this.filteredTasks = this.tasks;
-    } else {
-      this.filteredTasks = this.tasks.filter(t => t.categoryId === this.selectedCategoryId);
-    }
-  }
-
-  onCategoryFilterChange(): void {
-    this.filterTasks();
-  }
-
-  createCategory(): void {
-    if (this.newCategoryName.trim()) {
-      this.categoryService.createCategory({ name: this.newCategoryName }).pipe(takeUntil(this.destroy$)).subscribe({
-        next: (category) => {
-          this.categories.push(category);
-          this.newCategoryName = '';
-        },
-        error: (error) => console.error('Error creating category:', error)
-      });
-    }
-  }
-
-  createTask(): void {
-    if (this.newTaskTitle.trim() && this.newTaskCategoryId && this.newTaskSubtaskCount) {
-      this.taskService.createTask({
-        name: this.newTaskTitle,
-        categoryId: this.newTaskCategoryId,
-        subtaskCount: this.newTaskSubtaskCount
-      }).pipe(takeUntil(this.destroy$)).subscribe({
-        next: (task) => {
-          this.tasks.push(task);
-          this.filterTasks();
-          this.newTaskTitle = '';
-          this.newTaskCategoryId = null;
-          this.newTaskSubtaskCount = 3;
-        },
-        error: (error) => console.error('Error creating task:', error)
-      });
-    }
+  onTaskChange(): void {
+    this.selectedTask = this.tasks.find(t => t.id === this.selectedTaskId) || null;
   }
 
   checkActiveTimer(): void {
@@ -131,6 +77,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
         if (timer) {
           this.activeTimer = timer;
           this.startTimerDisplay();
+          
+          // Auto-select the task that has the active timer
+          const activeTask = this.tasks.find(t => 
+            t.subtasks?.some(st => st.id === timer.subtaskId)
+          );
+          if (activeTask) {
+            this.selectedTaskId = activeTask.id;
+            this.selectedTask = activeTask;
+          }
         }
       },
       error: (error) => {
@@ -195,11 +150,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   pad(num: number): string {
     return num.toString().padStart(2, '0');
-  }
-
-  getCategoryName(categoryId: number): string {
-    const category = this.categories.find(c => c.id === categoryId);
-    return category ? category.name : 'Unknown';
   }
 
   logout(): void {
