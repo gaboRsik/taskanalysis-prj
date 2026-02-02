@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { AuthService } from '../../services/auth.service';
 import { TaskService } from '../../services/task.service';
 import { TimerService } from '../../services/timer.service';
@@ -12,7 +13,7 @@ import { Task, TaskStatus, TimerResponse } from '../../models/task.model';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, NgxChartsModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
@@ -25,6 +26,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
   activeTimer: TimerResponse | null = null;
   timerInterval: any;
   elapsedTime: string = '00:00:00';
+
+  // Chart data
+  chartData: any[] = [];
+  view: any = undefined; // Auto-size based on container
+  showXAxis = true;
+  showYAxis = true;
+  gradient = false;
+  showLegend = false;
+  showXAxisLabel = true;
+  xAxisLabel = 'Subtasks';
+  showYAxisLabel = true;
+  yAxisLabel = 'Time (seconds)';
+  animations = true;
+  colorScheme: any = {
+    domain: ['#5AA454', '#A10A28', '#C7B42C', '#AAAAAA', '#7aa3e5', '#a27ea8']
+  };
 
   private destroy$ = new Subject<void>();
 
@@ -61,6 +78,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         // If a task was selected, update it
         if (this.selectedTaskId) {
           this.selectedTask = this.tasks.find(t => t.id === this.selectedTaskId) || null;
+          this.updateChartData();
         }
       },
       error: (error) => console.error('Error loading tasks:', error)
@@ -69,6 +87,44 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   onTaskChange(): void {
     this.selectedTask = this.tasks.find(t => t.id === this.selectedTaskId) || null;
+    this.updateChartData();
+  }
+
+  updateChartData(): void {
+    if (!this.selectedTask || !this.selectedTask.subtasks) {
+      this.chartData = [];
+      return;
+    }
+
+    this.chartData = this.selectedTask.subtasks
+      .filter(subtask => {
+        const time = subtask.totalTimeSeconds;
+        return time != null && !isNaN(time) && isFinite(time) && time > 0;
+      })
+      .map(subtask => {
+        return {
+          name: `Subtask #${subtask.subtaskNumber}`,
+          value: subtask.totalTimeSeconds, // Use seconds directly for better precision
+          extra: {
+            seconds: subtask.totalTimeSeconds,
+            formattedTime: this.formatTime(subtask.totalTimeSeconds)
+          }
+        };
+      });
+  }
+
+  formatTime(seconds: number): string {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m ${secs}s`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${secs}s`;
+    } else {
+      return `${secs}s`;
+    }
   }
 
   checkActiveTimer(): void {
