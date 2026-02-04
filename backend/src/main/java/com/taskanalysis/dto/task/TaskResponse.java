@@ -24,5 +24,7 @@ public class TaskResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<SubtaskResponse> subtasks;
+    private Integer totalPlannedPoints;
+    private Integer totalActualPoints;
 
 }

@@ -5,12 +5,13 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CategoryService } from '../../services/category.service';
 import { TaskService } from '../../services/task.service';
-import { Category, Task, TaskStatus } from '../../models/task.model';
+import { Category, Task, TaskStatus, Subtask } from '../../models/task.model';
+import { SubtaskPointsModalComponent } from '../subtask-points-modal/subtask-points-modal.component';
 
 @Component({
   selector: 'app-tasks',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SubtaskPointsModalComponent],
   templateUrl: './tasks.component.html',
   styleUrls: ['./tasks.component.scss']
 })
@@ -26,6 +27,10 @@ export class TasksComponent implements OnInit, OnDestroy {
 
   editingTask: Task | null = null;
   editTaskName: string = '';
+
+  // Points modal
+  isPointsModalOpen = false;
+  selectedTaskForPoints: Task | null = null;
 
   private destroy$ = new Subject<void>();
 
@@ -144,5 +149,30 @@ export class TasksComponent implements OnInit, OnDestroy {
   getCategoryName(categoryId: number): string {
     const category = this.categories.find(c => c.id === categoryId);
     return category ? category.name : 'Unknown';
+  }
+
+  openPointsModal(task: Task): void {
+    this.selectedTaskForPoints = task;
+    this.isPointsModalOpen = true;
+  }
+
+  closePointsModal(): void {
+    this.isPointsModalOpen = false;
+    this.selectedTaskForPoints = null;
+  }
+
+  saveSubtaskPoints(subtasks: Subtask[]): void {
+    this.taskService.updateSubtaskPoints(subtasks)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.closePointsModal();
+          this.loadTasks(); // Reload to get updated data
+        },
+        error: (error) => {
+          console.error('Error updating subtask points:', error);
+          alert('Hiba történt a pontok mentése során');
+        }
+      });
   }
 }

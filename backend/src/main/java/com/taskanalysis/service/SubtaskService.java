@@ -48,6 +48,27 @@ public class SubtaskService {
             subtask.setActualPoints(request.getActualPoints());
         }
 
+        // Validate that actual points don't exceed planned points
+        if (subtask.getActualPoints() != null && subtask.getPlannedPoints() != null) {
+            if (subtask.getActualPoints() > subtask.getPlannedPoints()) {
+                throw new RuntimeException("Actual points (" + subtask.getActualPoints() + 
+                    ") cannot exceed planned points (" + subtask.getPlannedPoints() + ")");
+            }
+        }
+
+        // Validate that actual points > 0 only if there is time spent on the subtask
+        if (subtask.getActualPoints() != null && subtask.getActualPoints() > 0) {
+            List<TimeEntry> timeEntries = timeEntryRepository.findBySubtaskId(subtaskId);
+            long totalSeconds = timeEntries.stream()
+                    .filter(entry -> entry.getDurationSeconds() != null)
+                    .mapToLong(TimeEntry::getDurationSeconds)
+                    .sum();
+            
+            if (totalSeconds == 0) {
+                throw new RuntimeException("Cannot assign actual points to a subtask with no time spent. Please track time before adding points.");
+            }
+        }
+
         Subtask updated = subtaskRepository.save(subtask);
         return mapToResponse(updated);
     }

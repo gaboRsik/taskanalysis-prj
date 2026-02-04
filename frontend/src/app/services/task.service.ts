@@ -37,6 +37,23 @@ export class TaskService {
     return this.http.put<Subtask>(`${this.subtaskUrl}/${subtaskId}`, request);
   }
 
+  updateSubtaskPoints(subtasks: Subtask[]): Observable<Subtask[]> {
+    const updates = subtasks.map(subtask => 
+      this.updateSubtask(subtask.id, {
+        plannedPoints: subtask.plannedPoints,
+        actualPoints: subtask.actualPoints
+      })
+    );
+    return new Observable(observer => {
+      Promise.all(updates.map(obs => obs.toPromise()))
+        .then(results => {
+          observer.next(results as Subtask[]);
+          observer.complete();
+        })
+        .catch(error => observer.error(error));
+    });
+  }
+
   getTasks(): Observable<Task[]> {
     return this.getAll();
   }

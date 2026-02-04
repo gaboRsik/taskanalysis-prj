@@ -157,6 +157,20 @@ public class TaskService {
                 .collect(Collectors.toList());
         response.setSubtasks(subtaskResponses);
 
+        // Calculate total planned and actual points
+        Integer totalPlannedPoints = subtasks.stream()
+                .map(Subtask::getPlannedPoints)
+                .filter(points -> points != null)
+                .reduce(0, Integer::sum);
+        
+        Integer totalActualPoints = subtasks.stream()
+                .map(Subtask::getActualPoints)
+                .filter(points -> points != null)
+                .reduce(0, Integer::sum);
+        
+        response.setTotalPlannedPoints(totalPlannedPoints);
+        response.setTotalActualPoints(totalActualPoints);
+
         return response;
     }
 

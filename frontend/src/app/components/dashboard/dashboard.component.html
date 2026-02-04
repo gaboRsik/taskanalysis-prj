@@ -105,10 +105,30 @@
 
       <div *ngIf="selectedTask" class="card">
         <div class="card-header bg-gradient">
-          <h5 class="mb-0">
-            <i class="bi bi-check2-square"></i> {{ selectedTask.name }}
-          </h5>
-          <small class="text-muted">Time Tracking & Subtasks</small>
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="mb-0">
+                <i class="bi bi-check2-square"></i> {{ selectedTask.name }}
+              </h5>
+              <small class="text-muted">
+                Time Tracking & Subtasks
+                <span *ngIf="selectedTask.totalPlannedPoints || selectedTask.totalActualPoints" class="ms-2">
+                  | <i class="bi bi-star"></i> Points: 
+                  <strong>{{ selectedTask.totalActualPoints || 0 }}</strong> / {{ selectedTask.totalPlannedPoints || 0 }}
+                  <span *ngIf="selectedTask.totalPlannedPoints && selectedTask.totalPlannedPoints > 0" class="badge bg-info ms-1">
+                    {{ ((selectedTask.totalActualPoints || 0) / selectedTask.totalPlannedPoints * 100).toFixed(0) }}%
+                  </span>
+                </span>
+              </small>
+            </div>
+            <button 
+              class="btn btn-sm btn-outline-info" 
+              (click)="openPointsModal()"
+              title="Edit subtask points"
+            >
+              <i class="bi bi-pencil-square"></i> Edit Points
+            </button>
+          </div>
         </div>
         <div class="card-body">
           <div *ngIf="!selectedTask.subtasks || selectedTask.subtasks.length === 0" class="alert alert-warning">
@@ -172,3 +192,11 @@
     </div>
   </div>
 </div>
+
+<!-- Points Modal -->
+<app-subtask-points-modal
+  [task]="selectedTask"
+  [isOpen]="isPointsModalOpen"
+  (close)="closePointsModal()"
+  (save)="saveSubtaskPoints($event)">
+</app-subtask-points-modal>

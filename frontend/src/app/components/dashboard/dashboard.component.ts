@@ -8,12 +8,13 @@ import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { AuthService } from '../../services/auth.service';
 import { TaskService } from '../../services/task.service';
 import { TimerService } from '../../services/timer.service';
-import { Task, TaskStatus, TimerResponse } from '../../models/task.model';
+import { Task, TaskStatus, TimerResponse, Subtask } from '../../models/task.model';
+import { SubtaskPointsModalComponent } from '../subtask-points-modal/subtask-points-modal.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NgxChartsModule],
+  imports: [CommonModule, FormsModule, RouterModule, NgxChartsModule, SubtaskPointsModalComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
@@ -42,6 +43,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   colorScheme: any = {
     domain: ['#5AA454', '#A10A28', '#C7B42C', '#AAAAAA', '#7aa3e5', '#a27ea8']
   };
+
+  // Points modal
+  isPointsModalOpen = false;
 
   private destroy$ = new Subject<void>();
 
@@ -211,5 +215,32 @@ export class DashboardComponent implements OnInit, OnDestroy {
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  openPointsModal(): void {
+    if (this.selectedTask) {
+      this.isPointsModalOpen = true;
+    }
+  }
+
+  closePointsModal(): void {
+    this.isPointsModalOpen = false;
+  }
+
+  saveSubtaskPoints(subtasks: Subtask[]): void {
+    this.taskService.updateSubtaskPoints(subtasks)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.closePointsModal();
+          if (this.selectedTaskId) {
+            this.loadTasks(); // Reload to get updated data
+          }
+        },
+        error: (error) => {
+          console.error('Error updating subtask points:', error);
+          alert('Hiba történt a pontok mentése során');
+        }
+      });
   }
 }

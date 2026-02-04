@@ -92,6 +92,13 @@
             </h6>
             <small class="text-muted">
               <i class="bi bi-folder"></i> {{ getCategoryName(task.categoryId) }}
+              <span *ngIf="task.totalPlannedPoints || task.totalActualPoints" class="ms-2">
+                | <i class="bi bi-star"></i> Points: 
+                <strong>{{ task.totalActualPoints || 0 }}</strong> / {{ task.totalPlannedPoints || 0 }}
+                <span *ngIf="task.totalPlannedPoints && task.totalPlannedPoints > 0" class="badge bg-info ms-1">
+                  {{ ((task.totalActualPoints || 0) / task.totalPlannedPoints * 100).toFixed(0) }}%
+                </span>
+              </span>
             </small>
           </div>
           <div *ngIf="editingTask?.id === task.id" class="d-flex gap-2">
@@ -119,6 +126,13 @@
           >
             {{ task.status }}
           </span>
+          <button 
+            class="btn btn-sm btn-outline-info" 
+            (click)="openPointsModal(task)"
+            title="Edit subtask points"
+          >
+            <i class="bi bi-pencil-square"></i> Points
+          </button>
           <button 
             *ngIf="editingTask?.id !== task.id"
             class="btn btn-sm btn-outline-primary" 
@@ -162,3 +176,11 @@
     </div>
   </div>
 </div>
+
+<!-- Points Modal -->
+<app-subtask-points-modal
+  [task]="selectedTaskForPoints"
+  [isOpen]="isPointsModalOpen"
+  (close)="closePointsModal()"
+  (save)="saveSubtaskPoints($event)">
+</app-subtask-points-modal>

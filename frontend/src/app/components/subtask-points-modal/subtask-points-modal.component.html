@@ -1,0 +1,83 @@
+<div class="modal-backdrop" *ngIf="isOpen" (click)="onClose()">
+  <div class="modal-dialog" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-pencil-square"></i> Edit Subtask Points - {{ task?.name }}
+        </h5>
+        <button type="button" class="btn-close" (click)="onClose()"></button>
+      </div>
+      
+      <div class="modal-body">
+        <div *ngIf="!task || editableSubtasks.length === 0" class="alert alert-info">
+          <i class="bi bi-info-circle"></i> No subtasks available for this task.
+        </div>
+
+        <div *ngIf="editableSubtasks.length > 0" class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th style="width: 15%">Subtask #</th>
+                <th style="width: 20%">Status</th>
+                <th style="width: 30%">Planned Points</th>
+                <th style="width: 30%">Actual Points</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let subtask of editableSubtasks; trackBy: trackBySubtaskId">
+                <td>
+                  <strong>#{{ subtask.subtaskNumber }}</strong>
+                </td>
+                <td>
+                  <span 
+                    class="badge"
+                    [ngClass]="{
+                      'bg-secondary': subtask.status === 'NOT_STARTED',
+                      'bg-primary': subtask.status === 'IN_PROGRESS',
+                      'bg-success': subtask.status === 'COMPLETED'
+                    }">
+                    {{ subtask.status.replace('_', ' ') }}
+                  </span>
+                </td>
+                <td>
+                  <input 
+                    type="number" 
+                    class="form-control form-control-sm" 
+                    [(ngModel)]="subtask.plannedPoints"
+                    min="0"
+                    placeholder="Enter planned points">
+                </td>
+                <td>
+                  <input 
+                    type="number" 
+                    class="form-control form-control-sm" 
+                    [(ngModel)]="subtask.actualPoints"
+                    [max]="subtask.plannedPoints || 999999"
+                    min="0"
+                    placeholder="Enter actual points"
+                    [disabled]="!subtask.totalTimeSeconds || subtask.totalTimeSeconds === 0"
+                    [class.is-invalid]="subtask.actualPoints && subtask.plannedPoints && subtask.actualPoints > subtask.plannedPoints">
+                  <div class="invalid-feedback" *ngIf="subtask.actualPoints && subtask.plannedPoints && subtask.actualPoints > subtask.plannedPoints">
+                    Cannot exceed planned points ({{ subtask.plannedPoints }})
+                  </div>
+                  <small class="text-muted" *ngIf="!subtask.totalTimeSeconds || subtask.totalTimeSeconds === 0">
+                    <i class="bi bi-info-circle"></i> Track time first
+                  </small>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="onClose()">
+          <i class="bi bi-x-circle"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-primary" (click)="onSave()">
+          <i class="bi bi-check-circle"></i> Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

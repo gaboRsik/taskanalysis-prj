@@ -17,6 +17,8 @@ export interface Task {
   createdAt: string;
   updatedAt: string;
   subtasks: Subtask[];
+  totalPlannedPoints?: number;
+  totalActualPoints?: number;
 }
 
 export interface TaskRequest {
