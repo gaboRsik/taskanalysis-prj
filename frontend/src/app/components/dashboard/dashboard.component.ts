@@ -149,7 +149,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
-        if (error.status !== 404) {
+        // Ignore 404 (not found) and 204 (no content) - these mean no active timer
+        if (error.status !== 404 && error.status !== 204) {
           console.error('Error checking active timer:', error);
         }
       }

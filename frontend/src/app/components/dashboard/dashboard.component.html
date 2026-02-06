@@ -111,9 +111,9 @@
                 <i class="bi bi-check2-square"></i> {{ selectedTask.name }}
               </h5>
               <small class="text-muted">
-                Time Tracking & Subtasks
+                Pontszámok összesen
                 <span *ngIf="selectedTask.totalPlannedPoints || selectedTask.totalActualPoints" class="ms-2">
-                  | <i class="bi bi-star"></i> Points: 
+                  | <i class="bi bi-star"></i> Points:
                   <strong>{{ selectedTask.totalActualPoints || 0 }}</strong> / {{ selectedTask.totalPlannedPoints || 0 }}
                   <span *ngIf="selectedTask.totalPlannedPoints && selectedTask.totalPlannedPoints > 0" class="badge bg-info ms-1">
                     {{ ((selectedTask.totalActualPoints || 0) / selectedTask.totalPlannedPoints * 100).toFixed(0) }}%
@@ -121,8 +121,8 @@
                 </span>
               </small>
             </div>
-            <button 
-              class="btn btn-sm btn-outline-info" 
+            <button
+              class="btn btn-sm btn-outline-info"
               (click)="openPointsModal()"
               title="Edit subtask points"
             >
@@ -135,55 +135,46 @@
             <i class="bi bi-exclamation-triangle"></i> No subtasks found for this task.
           </div>
 
-          <div class="list-group">
+          <!-- Compact Mobile-Friendly Grid -->
+          <div class="subtask-grid">
             <div
               *ngFor="let subtask of selectedTask.subtasks"
-              class="list-group-item"
+              class="subtask-card"
+              [class.active-timer]="activeTimer?.subtaskId === subtask.id"
+              (click)="activeTimer?.subtaskId === subtask.id ? stopTimer() : startTimer(subtask.id)"
             >
-              <div class="d-flex justify-content-between align-items-center">
-                <div class="flex-grow-1">
-                  <h6 class="mb-1">
-                    <i class="bi bi-circle-fill me-2"
-                       [class.text-secondary]="subtask.status === 'NOT_STARTED'"
-                       [class.text-warning]="subtask.status === 'IN_PROGRESS'"
-                       [class.text-success]="subtask.status === 'COMPLETED'"
-                       style="font-size: 0.6rem;">
-                    </i>
-                    Subtask #{{ subtask.subtaskNumber }}
-                  </h6>
-                  <div class="d-flex gap-3 mt-2">
-                    <span class="badge bg-light text-dark">
-                      <i class="bi bi-bar-chart"></i> Planned: {{ subtask.plannedPoints || 0 }}
-                    </span>
-                    <span *ngIf="subtask.actualPoints && subtask.actualPoints > 0" class="badge bg-info">
-                      <i class="bi bi-check-circle"></i> Actual: {{ subtask.actualPoints }}
-                    </span>
-                    <span
-                      class="badge"
-                      [class.bg-secondary]="subtask.status === 'NOT_STARTED'"
-                      [class.bg-warning]="subtask.status === 'IN_PROGRESS'"
-                      [class.bg-success]="subtask.status === 'COMPLETED'"
-                    >
-                      {{ subtask.status }}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <button
-                    class="btn"
-                    [class.btn-primary]="!activeTimer || activeTimer.subtaskId !== subtask.id"
-                    [class.btn-danger]="activeTimer?.subtaskId === subtask.id"
-                    [class.btn-lg]="activeTimer?.subtaskId === subtask.id"
-                    (click)="activeTimer?.subtaskId === subtask.id ? stopTimer() : startTimer(subtask.id)"
-                  >
-                    <i
-                      class="bi me-1"
-                      [class.bi-play-circle-fill]="!activeTimer || activeTimer.subtaskId !== subtask.id"
-                      [class.bi-stop-circle-fill]="activeTimer?.subtaskId === subtask.id"
-                    ></i>
-                    {{ activeTimer?.subtaskId === subtask.id ? 'Stop' : 'Start' }}
-                  </button>
-                </div>
+              <!-- Subtask Number Badge -->
+              <div class="subtask-number">
+                <span class="number-text">#{{ subtask.subtaskNumber }}</span>
+                <i class="bi status-icon"
+                   [class.bi-circle-fill]="subtask.status === 'NOT_STARTED'"
+                   [class.bi-hourglass-split]="subtask.status === 'IN_PROGRESS'"
+                   [class.bi-check-circle-fill]="subtask.status === 'COMPLETED'"
+                   [class.status-not-started]="subtask.status === 'NOT_STARTED'"
+                   [class.status-in-progress]="subtask.status === 'IN_PROGRESS'"
+                   [class.status-completed]="subtask.status === 'COMPLETED'">
+                </i>
+              </div>
+
+              <!-- Timer Display -->
+              <div class="timer-display">
+                <i class="bi"
+                   [class.bi-play-circle-fill]="!activeTimer || activeTimer.subtaskId !== subtask.id"
+                   [class.bi-stop-circle-fill]="activeTimer?.subtaskId === subtask.id">
+                </i>
+                <span *ngIf="activeTimer?.subtaskId === subtask.id" class="elapsed-time">
+                  {{ elapsedTime }}
+                </span>
+                <span *ngIf="!activeTimer || activeTimer.subtaskId !== subtask.id" class="total-time">
+                  {{ formatTime(subtask.totalTimeSeconds) }}
+                </span>
+              </div>
+
+              <!-- Points Badge (if exists) -->
+              <div class="points-badge" *ngIf="subtask.actualPoints || subtask.plannedPoints">
+                <span class="points-text">
+                  {{ subtask.actualPoints || 0 }}/{{ subtask.plannedPoints || 0 }}
+                </span>
               </div>
             </div>
           </div>

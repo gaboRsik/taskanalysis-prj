@@ -11,3 +11,134 @@
   background-color: #0d6efd;
   border-color: #0d6efd;
 }
+
+// Mobile-Friendly Subtask Grid
+.subtask-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+  padding: 0.5rem;
+
+  @media (max-width: 576px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (min-width: 992px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.subtask-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  min-height: 160px;
+  position: relative;
+  color: white;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  &:active {
+    transform: translateY(-1px);
+  }
+
+  &.active-timer {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    animation: pulse 2s ease-in-out infinite;
+    min-height: 180px;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 6px 20px rgba(245, 87, 108, 0.5);
+  }
+  50% {
+    box-shadow: 0 6px 30px rgba(245, 87, 108, 0.8);
+  }
+}
+
+.subtask-number {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+
+  .number-text {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .status-icon {
+    font-size: 1.25rem;
+    
+    &.status-not-started {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
+    &.status-in-progress {
+      color: #ffd700;
+    }
+    
+    &.status-completed {
+      color: #4caf50;
+    }
+  }
+}
+
+.timer-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+
+  .bi {
+    font-size: 1.5rem;
+  }
+
+  .elapsed-time {
+    font-size: 1.25rem;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+  }
+
+  .total-time {
+    font-size: 0.95rem;
+    opacity: 0.9;
+  }
+}
+
+.points-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  
+  .points-text {
+    letter-spacing: 0.5px;
+  }
+}
