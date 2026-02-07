@@ -92,24 +92,58 @@ taskanalysis-prj/
 │   │   │       └── db/migration/
 │   │   └── test/
 │   └── pom.xml
-├── frontend/              # Angular frontend (később)
+├── frontend/              # Angular frontend
 ├── docs/                  # Dokumentáció
 │   ├── prd.md
-│   └── architecture.md
+│   ├── architecture.md
+│   └── EXPORT_FEATURE.md  # Export feature dokumentáció
 └── docker-compose.yml     # MySQL Docker config
 ```
 
-## Következő lépések
+## Features Status
 
-- [x] Backend projekt struktúra
-- [x] Entity osztályok
-- [x] Repository-k
-- [x] Flyway migration
-- [ ] JWT Security konfiguráció
-- [ ] DTO-k és mapper-ek
-- [ ] Service réteg
-- [ ] REST API Controller-ek
-- [ ] Frontend projekt létrehozása
+### ✅ Implementált
+- Backend projekt struktúra
+- Entity osztályok
+- Repository-k
+- Flyway migration
+- JWT Security konfiguráció
+- DTO-k és mapper-ek
+- Service réteg
+- REST API Controller-ek
+- **Export funkció (Excel)** 🆕
+  - Email küldés mellékletként
+  - Közvetlen letöltés
+  - Adaptive UX (mobil/desktop)
+
+### 🚧 Fejlesztés alatt
+- Frontend Angular komponensek
+- Dashboard analytics
+- PDF export
+
+## Export Feature 🆕
+
+Az export feature lehetővé teszi a felhasználók számára az adatok Excel formátumban való mentését.
+
+**Adaptive megjelenés:**
+- 📱 **Mobilon**: csak email küldés (mobilbarát)
+- 💻 **Desktop-on**: letöltés + email küldés
+
+**Setup:**
+1. Email konfiguráció environment variables:
+   ```bash
+   MAIL_USERNAME=your-email@gmail.com
+   MAIL_PASSWORD=your-app-password
+   MAIL_FROM=Task Analysis <noreply@taskanalysis.com>
+   ```
+
+2. Részletes dokumentáció: [EXPORT_FEATURE.md](docs/EXPORT_FEATURE.md)
+
+**API Endpoint:**
+```
+POST /api/export/task/{taskId}
+Body: { "format": "XLSX", "delivery": "EMAIL" }
+```
 
 ## BMAD Workflow
 

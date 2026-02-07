@@ -275,6 +275,32 @@ A felhasználók:
   - **Diagramok (opcionális):** Idő eloszlás részfeladatonként (oszlopdiagram)
 - Formázás: Professzionális megjelenés (táblázat border, színezés)
 
+**Delivery módszerek (Adaptive UX):**
+- **Desktop-on (≥ 768px):**
+  - 📥 **Közvetlen letöltés** - Fájl automatikus letöltése böngészőben
+  - 📧 **Email küldés** - Mellékletként a felhasználó email címére
+- **Mobilon (< 768px):**
+  - 📧 **Email küldés** (kizárólag) - Mellékletként, mobil-barát megoldás
+
+**Email delivery specifikáció:**
+- Email cím: Bejelentkezett felhasználó email címe (users.email)
+- Tárgy: `Task Analysis Export - {Feladat neve}`
+- Törzs: 
+  ```
+  Szia {Felhasználó neve}!
+  
+  Az exportált feladat adataid csatolva találod.
+  
+  Feladat: {Feladat neve}
+  Kategória: {Kategória neve}
+  Export dátum: {Dátum}
+  
+  Üdv,
+  Task Analysis
+  ```
+- Melléklet: Generált Excel/PDF fájl
+- Technológia: Spring Boot Mail Sender (SMTP)
+
 ---
 
 ### Responsive Design

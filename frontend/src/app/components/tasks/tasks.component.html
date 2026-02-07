@@ -126,6 +126,48 @@
           >
             {{ task.status }}
           </span>
+          
+          <!-- Export Button (Adaptive: Email only on mobile, both options on desktop) -->
+          <div class="btn-group" role="group">
+            <!-- Mobile: Only Email button -->
+            <button 
+              *ngIf="isMobile"
+              class="btn btn-sm btn-outline-success" 
+              (click)="exportTaskByEmail(task.id)"
+              [disabled]="isExporting(task.id)"
+              title="Export and send via email"
+            >
+              <i class="bi bi-envelope"></i>
+              <span *ngIf="!isExporting(task.id)">Email</span>
+              <span *ngIf="isExporting(task.id)" class="spinner-border spinner-border-sm"></span>
+            </button>
+            
+            <!-- Desktop: Both Download and Email buttons -->
+            <ng-container *ngIf="!isMobile">
+              <button 
+                class="btn btn-sm btn-outline-success" 
+                (click)="exportTaskByDownload(task.id)"
+                [disabled]="isExporting(task.id)"
+                title="Download Excel file"
+              >
+                <i class="bi bi-download"></i> Download
+              </button>
+              <button 
+                class="btn btn-sm btn-outline-success" 
+                (click)="exportTaskByEmail(task.id)"
+                [disabled]="isExporting(task.id)"
+                title="Send via email"
+              >
+                <i class="bi bi-envelope"></i> Email
+              </button>
+            </ng-container>
+            
+            <!-- Loading indicator for export -->
+            <span *ngIf="isExporting(task.id)" class="ms-2 text-muted">
+              <span class="spinner-border spinner-border-sm"></span> Exporting...
+            </span>
+          </div>
+          
           <button 
             class="btn btn-sm btn-outline-info" 
             (click)="openPointsModal(task)"

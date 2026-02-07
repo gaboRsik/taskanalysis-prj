@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -90,6 +89,24 @@ public class TaskService {
 
         List<Subtask> subtasks = subtaskRepository.findByTaskId(taskId);
         return mapToResponse(task, subtasks);
+    }
+
+    /**
+     * Get Task entity for export (with loaded relationships)
+     */
+    public Task getTaskEntityById(Long taskId, Long userId) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+
+        if (!task.getUser().getId().equals(userId)) {
+            throw new RuntimeException("Access denied");
+        }
+
+        // Ensure subtasks and time entries are loaded
+        task.getSubtasks().size();
+        task.getSubtasks().forEach(subtask -> subtask.getTimeEntries().size());
+        
+        return task;
     }
 
     @Transactional

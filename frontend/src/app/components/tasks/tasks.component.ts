@@ -6,6 +6,7 @@ import { takeUntil } from 'rxjs/operators';
 import { CategoryService } from '../../services/category.service';
 import { TaskService } from '../../services/task.service';
 import { Category, Task, TaskStatus, Subtask } from '../../models/task.model';
+import { ExportFormat, DeliveryMethod } from '../../models/export.model';
 import { SubtaskPointsModalComponent } from '../subtask-points-modal/subtask-points-modal.component';
 
 @Component({
@@ -32,6 +33,10 @@ export class TasksComponent implements OnInit, OnDestroy {
   isPointsModalOpen = false;
   selectedTaskForPoints: Task | null = null;
 
+  // Export functionality
+  exportingTaskId: number | null = null;
+  isMobile = false;
+
   private destroy$ = new Subject<void>();
 
   TaskStatus = TaskStatus;
@@ -39,11 +44,19 @@ export class TasksComponent implements OnInit, OnDestroy {
   constructor(
     private categoryService: CategoryService,
     private taskService: TaskService
-  ) {}
+  ) {
+    // Detect if mobile device
+    this.isMobile = window.innerWidth < 768;
+  }
 
   ngOnInit(): void {
     this.loadCategories();
     this.loadTasks();
+    
+    // Listen to window resize for responsive behavior
+    window.addEventListener('resize', () => {
+      this.isMobile = window.innerWidth < 768;
+    });
   }
 
   ngOnDestroy(): void {
@@ -174,5 +187,79 @@ export class TasksComponent implements OnInit, OnDestroy {
           alert('Hiba történt a pontok mentése során');
         }
       });
+  }
+
+  /**
+   * Export task by email (mobile-friendly)
+   */
+  exportTaskByEmail(taskId: number): void {
+    this.exportingTaskId = taskId;
+    
+    this.taskService.exportTask(taskId, ExportFormat.XLSX, DeliveryMethod.EMAIL)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.exportingTaskId = null;
+          alert(`✅ ${response.message}`);
+        },
+        error: (error) => {
+          this.exportingTaskId = null;
+          console.error('Export error:', error);
+          const errorMsg = error.error?.message || 'Export sikertelen';
+          alert(`❌ ${errorMsg}`);
+        }
+      });
+  }
+
+  /**
+   * Export task by direct download (desktop)
+   */
+  exportTaskByDownload(taskId: number): void {
+    this.exportingTaskId = taskId;
+    
+    this.taskService.exportTask(taskId, ExportFormat.XLSX, DeliveryMethod.DOWNLOAD)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.exportingTaskId = null;
+          
+          // Extract filename from Content-Disposition header
+          const contentDisposition = response.headers.get('Content-Disposition');
+          let fileName = 'task_export.xlsx';
+          if (contentDisposition) {
+            const matches = /filename="?([^"]+)"?/.exec(contentDisposition);
+            if (matches && matches[1]) {
+              fileName = matches[1];
+            }
+          }
+
+          // Create download link
+          const blob = response.body;
+          if (blob) {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            alert('✅ Export sikeresen letöltve!');
+          }
+        },
+        error: (error) => {
+          this.exportingTaskId = null;
+          console.error('Export error:', error);
+          alert('❌ Export letöltése sikertelen');
+        }
+      });
+  }
+
+  /**
+   * Check if task is currently being exported
+   */
+  isExporting(taskId: number): boolean {
+    return this.exportingTaskId === taskId;
   }
 }
