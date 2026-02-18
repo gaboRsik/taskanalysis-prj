@@ -18,12 +18,21 @@ Task Analysis application - részfeladat szintű időmérés és elemzés.
 
 ## Fejlesztői környezet beállítása
 
-### Előfeltételek
+### 🔧 Előfeltételek
+
+**Fejlesztéshez:**
 - Java 17+
 - Node.js 18+
 - Docker Desktop
-- IntelliJ IDEA
+- IntelliJ IDEA / VS Code
 - Maven
+
+**Production deployment-hez:**
+- Docker & Docker Compose
+- AWS Account (opcionális)
+- Domain név (opcionális)
+
+### 🚀 Development Setup
 
 ### 1. MySQL indítása (Docker)
 
@@ -72,11 +81,49 @@ Az adatbázis automatikusan létrejön a Flyway migration-ökkel az első indít
 - `subtasks` - Részfeladatok
 - `time_entries` - Időbejegyzések
 
+## 🐋 Docker Deployment (Production)
+
+### Quick Start - Production
+
+```bash
+# 1. Environment setup
+cp .env.example .env
+nano .env  # Fill in your production values
+
+# 2. Build and run
+docker-compose -f docker-compose.prod.yml up -d --build
+
+# 3. Check status
+docker ps
+docker-compose -f docker-compose.prod.yml logs -f
+```
+
+### 📦 Dockerfile-ok:
+- `backend/Dockerfile` - Spring Boot (t3.micro optimalizált, 512MB limit)
+- `frontend/Dockerfile` - Angular + Nginx (multi-stage build)
+- `docker-compose.prod.yml` - Production setup memory optimalizációval
+
+### ☁️ AWS Deployment:
+Teljes lépésről-lépésre útmutató: **[AWS Deployment Guide](docs/AWS_DEPLOYMENT_GUIDE.md)**
+
+- t3.micro instance setup (Free Tier 12 hónapig)
+- Docker telepítés és konfiguráció
+- Domain beállítás és SSL (Let's Encrypt)
+- Memory optimalizáció és monitoring
+
+**Költség:**
+- **Első 12 hó**: ~€3/hó (Free Tier + storage)
+- **Utána**: ~€7-8/hó (t3.micro) vagy €14-16/hó (t3.small)
+
+---
+
 ## Projekt struktúra
 
 ```
 taskanalysis-prj/
-├── backend/               # Spring Boot backend
+├── backend/
+│   ├── Dockerfile                    # Backend container 🆕
+│   ├── .dockerignore                 # 🆕
 │   ├── src/
 │   │   ├── main/
 │   │   │   ├── java/com/taskanalysis/
@@ -89,15 +136,23 @@ taskanalysis-prj/
 │   │   │   │   └── TaskAnalysisApplication.java
 │   │   │   └── resources/
 │   │   │       ├── application.properties
+│   │   │       ├── application-prod.properties  # 🆕
 │   │   │       └── db/migration/
 │   │   └── test/
 │   └── pom.xml
-├── frontend/              # Angular frontend
-├── docs/                  # Dokumentáció
+├── frontend/
+│   ├── Dockerfile                    # Frontend container 🆕
+│   ├── nginx.conf                    # Nginx config 🆕
+│   ├── .dockerignore                 # 🆕
+│   └── src/
+├── docs/
 │   ├── prd.md
 │   ├── architecture.md
-│   └── EXPORT_FEATURE.md  # Export feature dokumentáció
-└── docker-compose.yml     # MySQL Docker config
+│   ├── EXPORT_FEATURE.md
+│   └── AWS_DEPLOYMENT_GUIDE.md      # 🆕 Deployment útmutató
+├── docker-compose.yml                # Development
+├── docker-compose.prod.yml           # 🆕 Production
+└── .env.example                      # 🆕 Environment template
 ```
 
 ## Features Status
@@ -153,7 +208,9 @@ Ez a projekt a BMAD (Business Model Analysis & Design) workflow-t használja a f
 
 - [PRD](docs/prd.md) - Product Requirements Document
 - [Architecture](docs/architecture.md) - Technikai architektúra
+- [Export Feature](docs/EXPORT_FEATURE.md) - Export funkció dokumentáció
+- [AWS Deployment](docs/AWS_DEPLOYMENT_GUIDE.md) - AWS deployment útmutató 🆕
 
 ---
 
-*Utolsó frissítés: 2026-01-29*
+*Utolsó frissítés: 2026-02-18 - Docker deployment és AWS guide hozzáadva*
