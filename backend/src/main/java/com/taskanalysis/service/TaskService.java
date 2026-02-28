@@ -69,6 +69,7 @@ public class TaskService {
         return mapToResponse(savedTask, subtasks);
     }
 
+    @Transactional(readOnly = true)
     public List<TaskResponse> getUserTasks(Long userId) {
         List<Task> tasks = taskRepository.findByUserIdOrderByCreatedAtDesc(userId);
         return tasks.stream()
@@ -79,6 +80,7 @@ public class TaskService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public TaskResponse getTaskById(Long userId, Long taskId) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
@@ -94,6 +96,7 @@ public class TaskService {
     /**
      * Get Task entity for export (with loaded relationships)
      */
+    @Transactional(readOnly = true)
     public Task getTaskEntityById(Long taskId, Long userId) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
