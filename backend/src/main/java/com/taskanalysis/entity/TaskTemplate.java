@@ -48,6 +48,9 @@ public class TaskTemplate {
     @Column(name = "subtask_count", nullable = false)
     private Integer subtaskCount = 1;
 
+    @Column(name = "task_count", nullable = false)
+    private Integer taskCount = 1;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

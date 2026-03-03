@@ -49,9 +49,9 @@ export class TemplateService {
   }
 
   /**
-   * Create a task from a template
+   * Create multiple tasks from a template
    */
-  createTaskFromTemplate(templateId: number): Observable<Task> {
-    return this.http.post<Task>(`${this.apiUrl}/${templateId}/create-task`, {});
+  createTasksFromTemplate(templateId: number): Observable<Task[]> {
+    return this.http.post<Task[]>(`${this.apiUrl}/${templateId}/create-tasks`, {});
   }
 }

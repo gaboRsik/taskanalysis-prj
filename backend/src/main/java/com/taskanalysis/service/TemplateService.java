@@ -79,6 +79,7 @@ public class TemplateService {
         template.setName(request.getName());
         template.setDescription(request.getDescription());
         template.setSubtaskCount(request.getSubtaskCount());
+        template.setTaskCount(request.getTaskCount());
 
         // Create template subtasks
         if (request.getTemplateSubtasks() != null && !request.getTemplateSubtasks().isEmpty()) {
@@ -130,6 +131,7 @@ public class TemplateService {
         template.setDescription(request.getDescription());
         template.setCategory(category);
         template.setSubtaskCount(request.getSubtaskCount());
+        template.setTaskCount(request.getTaskCount());
 
         // Update template subtasks
         template.getTemplateSubtasks().clear();
@@ -180,6 +182,7 @@ public class TemplateService {
                 .categoryId(template.getCategory().getId())
                 .categoryName(template.getCategory().getName())
                 .subtaskCount(template.getSubtaskCount())
+                .taskCount(template.getTaskCount())
                 .templateSubtasks(subtaskDTOs)
                 .createdAt(template.getCreatedAt())
                 .updatedAt(template.getUpdatedAt())

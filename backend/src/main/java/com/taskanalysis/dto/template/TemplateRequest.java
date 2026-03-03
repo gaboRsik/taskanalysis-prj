@@ -31,6 +31,11 @@ public class TemplateRequest {
     @Max(value = 100, message = "Subtask count must not exceed 100")
     private Integer subtaskCount;
 
+    @NotNull(message = "Task count is required")
+    @Min(value = 1, message = "Task count must be at least 1")
+    @Max(value = 100, message = "Task count must not exceed 100")
+    private Integer taskCount;
+
     @Valid
     @Size(max = 100, message = "Template subtasks must not exceed 100")
     private List<TemplateSubtaskDTO> templateSubtasks;

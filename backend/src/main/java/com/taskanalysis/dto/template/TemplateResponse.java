@@ -23,6 +23,7 @@ public class TemplateResponse {
     private Long categoryId;
     private String categoryName;
     private Integer subtaskCount;
+    private Integer taskCount;
     private List<TemplateSubtaskDTO> templateSubtasks;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

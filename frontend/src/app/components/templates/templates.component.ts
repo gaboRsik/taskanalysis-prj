@@ -30,6 +30,7 @@ export class TemplatesComponent implements OnInit, OnDestroy {
   templateDescription: string = '';
   selectedCategoryId: number | null = null;
   subtaskCount: number = 3;
+  taskCount: number = 1;
   templateSubtasks: TemplateSubtask[] = [];
   
   // UI state
@@ -91,6 +92,7 @@ export class TemplatesComponent implements OnInit, OnDestroy {
     this.templateDescription = template.description || '';
     this.selectedCategoryId = template.categoryId;
     this.subtaskCount = template.subtaskCount;
+    this.taskCount = template.taskCount;
     this.templateSubtasks = [...template.templateSubtasks];
   }
 
@@ -104,6 +106,7 @@ export class TemplatesComponent implements OnInit, OnDestroy {
     this.templateDescription = '';
     this.selectedCategoryId = null;
     this.subtaskCount = 3;
+    this.taskCount = 1;
     this.templateSubtasks = [];
     this.editingTemplateId = null;
     this.errorMessage = '';
@@ -137,6 +140,7 @@ export class TemplatesComponent implements OnInit, OnDestroy {
       description: this.templateDescription.trim() || undefined,
       categoryId: this.selectedCategoryId!,
       subtaskCount: this.subtaskCount,
+      taskCount: this.taskCount,
       templateSubtasks: this.templateSubtasks
     };
 
@@ -194,18 +198,19 @@ export class TemplatesComponent implements OnInit, OnDestroy {
   }
 
   createTaskFromTemplate(template: Template): void {
-    if (confirm(`Create a new task from template "${template.name}"?`)) {
-      this.templateService.createTaskFromTemplate(template.id).pipe(takeUntil(this.destroy$)).subscribe({
-        next: (task) => {
-          this.showSuccess(`Task "${task.name}" created successfully from template`);
+    const taskWord = template.taskCount === 1 ? 'task' : 'tasks';
+    if (confirm(`Create ${template.taskCount} ${taskWord} from template "${template.name}"?`)) {
+      this.templateService.createTasksFromTemplate(template.id).pipe(takeUntil(this.destroy$)).subscribe({
+        next: (tasks) => {
+          this.showSuccess(`${tasks.length} ${taskWord} created successfully from template`);
           // Navigate to tasks page after a brief delay
           setTimeout(() => {
             this.router.navigate(['/tasks']);
           }, 1500);
         },
         error: (error) => {
-          console.error('Error creating task from template:', error);
-          this.showError('Failed to create task from template');
+          console.error('Error creating tasks from template:', error);
+          this.showError('Failed to create tasks from template');
         }
       });
     }

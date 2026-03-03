@@ -20,7 +20,7 @@ import java.util.List;
  * REST Controller for Task Template management
  */
 @RestController
-@RequestMapping("/api/templates")
+@RequestMapping("/templates")
 @RequiredArgsConstructor
 public class TemplateController {
 
@@ -87,14 +87,14 @@ public class TemplateController {
     }
 
     /**
-     * Create a task from a template
-     * POST /api/templates/{id}/create-task
+     * Create multiple tasks from a template
+     * POST /api/templates/{id}/create-tasks
      */
-    @PostMapping("/{id}/create-task")
-    public ResponseEntity<TaskResponse> createTaskFromTemplate(@PathVariable Long id) {
+    @PostMapping("/{id}/create-tasks")
+    public ResponseEntity<List<TaskResponse>> createTasksFromTemplate(@PathVariable Long id) {
         Long userId = getCurrentUser().getId();
-        TaskResponse task = taskService.createTaskFromTemplate(userId, id);
-        return ResponseEntity.status(HttpStatus.CREATED).body(task);
+        List<TaskResponse> tasks = taskService.createTasksFromTemplate(userId, id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(tasks);
     }
 
     /**

@@ -5,6 +5,7 @@ export interface Template {
   categoryId: number;
   categoryName: string;
   subtaskCount: number;
+  taskCount: number;
   templateSubtasks: TemplateSubtask[];
   createdAt: string;
   updatedAt: string;
@@ -20,5 +21,6 @@ export interface TemplateRequest {
   description?: string;
   categoryId: number;
   subtaskCount: number;
+  taskCount: number;
   templateSubtasks: TemplateSubtask[];
 }

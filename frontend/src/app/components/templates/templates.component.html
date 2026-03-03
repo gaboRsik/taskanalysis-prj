@@ -103,6 +103,25 @@
               <small class="text-muted">Must be between 1 and 100</small>
             </div>
 
+            <!-- Task Count -->
+            <div class="mb-3">
+              <label for="taskCount" class="form-label">Number of Tasks to Create <span class="text-danger">*</span></label>
+              <input 
+                type="number" 
+                class="form-control" 
+                id="taskCount"
+                [(ngModel)]="taskCount" 
+                name="taskCount"
+                min="1"
+                max="100"
+                required
+              />
+              <small class="text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                How many tasks will be created when using this template (1-100)
+              </small>
+            </div>
+
             <!-- Template Subtasks -->
             <div class="mb-3" *ngIf="templateSubtasks.length > 0">
               <label class="form-label">Subtask Planned Points</label>
@@ -171,7 +190,9 @@
                       <i class="bi bi-file-earmark-text me-1"></i>
                       {{ template.name }}
                     </h6>
-                    <span class="badge bg-primary">{{ template.subtaskCount }} tasks</span>
+                    <span class="badge bg-primary" [title]="'Creates ' + template.taskCount + ' task(s)'">
+                      {{ template.taskCount }}x
+                    </span>
                   </div>
                 </div>
                 <div class="card-body">
@@ -180,6 +201,10 @@
                     <span class="badge bg-info">
                       <i class="bi bi-folder me-1"></i>
                       {{ template.categoryName }}
+                    </span>
+                    <span class="badge bg-secondary ms-1" [title]="'Each task has ' + template.subtaskCount + ' subtask(s)'">
+                      <i class="bi bi-list-nested me-1"></i>
+                      {{ template.subtaskCount }} subtasks
                     </span>
                   </div>
 
