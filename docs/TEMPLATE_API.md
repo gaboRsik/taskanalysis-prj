@@ -1,9 +1,9 @@
 # Template API Documentation
 
 **Project:** Task Analysis  
-**Version:** 1.2.0  
-**Date:** 2026-03-03  
-**Feature:** Template System (Phase 1)
+**Version:** 1.3.0  
+**Date:** 2026-03-04  
+**Feature:** Template System with Bulk Task Creation
 
 ---
 
@@ -16,7 +16,8 @@ A Template System lehetővé teszi újrafelhasználható feladat sablonok létre
 - ✅ Újrafelhasználható feladatstruktúra
 - ✅ Előre definiált részfeladatok plánolt pontértékekkel
 - ✅ Egyedi sablon nevek kategóriánként
-- ✅ Task létrehozás sablonból egy kattintással
+- ✅ **Bulk task creation**: Több azonos task létrehozása egy kattintással
+- ✅ **Auto-numbering**: Tasks automatically named with #1, #2, #3 pattern
 
 ---
 
@@ -54,6 +55,7 @@ Authorization: Bearer <token>
     "categoryId": 5,
     "categoryName": "Python Development",
     "subtaskCount": 4,
+    "taskCount": 1,
     "templateSubtasks": [
       {
         "subtaskNumber": 1,
@@ -82,6 +84,7 @@ Authorization: Bearer <token>
     "categoryId": 5,
     "categoryName": "Python Development",
     "subtaskCount": 3,
+    "taskCount": 5,
     "templateSubtasks": [
       {
         "subtaskNumber": 1,
@@ -203,6 +206,7 @@ Content-Type: application/json
   "description": "Create a new REST API endpoint with tests and documentation",
   "categoryId": 5,
   "subtaskCount": 4,
+  "taskCount": 1,
   "templateSubtasks": [
     {
       "subtaskNumber": 1,
@@ -229,6 +233,7 @@ Content-Type: application/json
 - `description`: Opcionális, max 5000 karakter
 - `categoryId`: **Kötelező** (analytics miatt)
 - `subtaskCount`: Kötelező, 1-100 között
+- `taskCount`: **Kötelező**, 1-100 között (how many tasks to create)
 - `templateSubtasks`: Opcionális lista
 
 ### Response
@@ -363,6 +368,7 @@ Content-Type: application/json
   "description": "Updated description",
   "categoryId": 5,
   "subtaskCount": 3,
+  "taskCount": 2,
   "templateSubtasks": [
     {
       "subtaskNumber": 1,
@@ -494,87 +500,192 @@ curl -X DELETE http://localhost:8080/api/templates/1 \
 
 ---
 
-## 6. Create Task from Template
+## 6. Create Tasks from Template (Bulk Creation)
 
-Új feladat létrehozása sablonból. A feladat örökli a sablon kategóriáját és részfeladatait (plánolt pontértékekkel).
+**Több azonos feladat** létrehozása sablonból egy kattintással. Minden task örökli a sablon kategóriáját és részfeladatait (plánolt pontértékekkel). A task-ok automatikusan sorszámozva vannak: `#1`, `#2`, `#3` stb.
 
 ### Request
 
 ```http
-POST /api/templates/{id}/create-task
+POST /api/templates/{id}/create-tasks
 Authorization: Bearer <token>
 ```
 
 **Path Parameters:**
 - `id` (Long, required) - A sablon azonosítója
 
+**Note:** A `taskCount` mező a template-ben határozza meg, hány task jön létre.
+
 ### Response
 
 **Success (201 Created):**
+
+Array of created tasks. If template has `taskCount: 3`, returns 3 tasks.
+
 ```json
-{
-  "id": 42,
-  "name": "Python REST API Endpoint",
-  "description": "Create a new REST API endpoint with tests and documentation",
-  "status": "OPEN",
-  "categoryId": 5,
-  "categoryName": "Python Development",
-  "subtaskCount": 4,
-  "createdFromTemplateId": 1,
-  "subtasks": [
-    {
-      "id": 101,
-      "taskId": 42,
-      "subtaskNumber": 1,
-      "actualPoints": null,
-      "plannedPoints": 5,
-      "completedAt": null
-    },
-    {
-      "id": 102,
-      "taskId": 42,
-      "subtaskNumber": 2,
-      "actualPoints": null,
-      "plannedPoints": 8,
-      "completedAt": null
-    },
-    {
-      "id": 103,
-      "taskId": 42,
-      "subtaskNumber": 3,
-      "actualPoints": null,
-      "plannedPoints": 3,
-      "completedAt": null
-    },
-    {
-      "id": 104,
-      "taskId": 42,
-      "subtaskNumber": 4,
-      "actualPoints": null,
-      "plannedPoints": 2,
-      "completedAt": null
-    }
-  ],
-  "createdAt": "2026-03-03T14:20:15",
-  "updatedAt": "2026-03-03T14:20:15"
-}
+[
+  {
+    "id": 42,
+    "name": "Python REST API Endpoint #1",
+    "description": "Create a new REST API endpoint with tests and documentation",
+    "status": "OPEN",
+    "categoryId": 5,
+    "categoryName": "Python Development",
+    "subtaskCount": 4,
+    "createdFromTemplateId": 1,
+    "subtasks": [
+      {
+        "id": 101,
+        "taskId": 42,
+        "subtaskNumber": 1,
+        "actualPoints": null,
+        "plannedPoints": 5,
+        "completedAt": null
+      },
+      {
+        "id": 102,
+        "taskId": 42,
+        "subtaskNumber": 2,
+        "actualPoints": null,
+        "plannedPoints": 8,
+        "completedAt": null
+      },
+      {
+        "id": 103,
+        "taskId": 42,
+        "subtaskNumber": 3,
+        "actualPoints": null,
+        "plannedPoints": 3,
+        "completedAt": null
+      },
+      {
+        "id": 104,
+        "taskId": 42,
+        "subtaskNumber": 4,
+        "actualPoints": null,
+        "plannedPoints": 2,
+        "completedAt": null
+      }
+    ],
+    "createdAt": "2026-03-04T00:15:30",
+    "updatedAt": "2026-03-04T00:15:30"
+  },
+  {
+    "id": 43,
+    "name": "Python REST API Endpoint #2",
+    "description": "Create a new REST API endpoint with tests and documentation",
+    "status": "OPEN",
+    "categoryId": 5,
+    "categoryName": "Python Development",
+    "subtaskCount": 4,
+    "createdFromTemplateId": 1,
+    "subtasks": [
+      {
+        "id": 105,
+        "taskId": 43,
+        "subtaskNumber": 1,
+        "actualPoints": null,
+        "plannedPoints": 5,
+        "completedAt": null
+      },
+      {
+        "id": 106,
+        "taskId": 43,
+        "subtaskNumber": 2,
+        "actualPoints": null,
+        "plannedPoints": 8,
+        "completedAt": null
+      },
+      {
+        "id": 107,
+        "taskId": 43,
+        "subtaskNumber": 3,
+        "actualPoints": null,
+        "plannedPoints": 3,
+        "completedAt": null
+      },
+      {
+        "id": 108,
+        "taskId": 43,
+        "subtaskNumber": 4,
+        "actualPoints": null,
+        "plannedPoints": 2,
+        "completedAt": null
+      }
+    ],
+    "createdAt": "2026-03-04T00:15:30",
+    "updatedAt": "2026-03-04T00:15:30"
+  },
+  {
+    "id": 44,
+    "name": "Python REST API Endpoint #3",
+    "description": "Create a new REST API endpoint with tests and documentation",
+    "status": "OPEN",
+    "categoryId": 5,
+    "categoryName": "Python Development",
+    "subtaskCount": 4,
+    "createdFromTemplateId": 1,
+    "subtasks": [
+      {
+        "id": 109,
+        "taskId": 44,
+        "subtaskNumber": 1,
+        "actualPoints": null,
+        "plannedPoints": 5,
+        "completedAt": null
+      },
+      {
+        "id": 110,
+        "taskId": 44,
+        "subtaskNumber": 2,
+        "actualPoints": null,
+        "plannedPoints": 8,
+        "completedAt": null
+      },
+      {
+        "id": 111,
+        "taskId": 44,
+        "subtaskNumber": 3,
+        "actualPoints": null,
+        "plannedPoints": 3,
+        "completedAt": null
+      },
+      {
+        "id": 112,
+        "taskId": 44,
+        "subtaskNumber": 4,
+        "actualPoints": null,
+        "plannedPoints": 2,
+        "completedAt": null
+      }
+    ],
+    "createdAt": "2026-03-04T00:15:30",
+    "updatedAt": "2026-03-04T00:15:30"
+  }
+]
 ```
+
+**Key Features:**
+- ✅ **Auto-numbering**: Tasks named `Template Name #1`, `#2`, `#3`...
+- ✅ **Bulk creation**: Creates `taskCount` tasks in one API call
+- ✅ **Identical structure**: All tasks have same subtasks with planned points
+- ✅ **Same category**: All created tasks inherit template's category
 
 **Not Found (404):**
 ```json
 {
-  "timestamp": "2026-03-03T10:15:30",
+  "timestamp": "2026-03-04T00:15:30",
   "status": 404,
   "error": "Not Found",
   "message": "Template not found with id: 999",
-  "path": "/api/templates/999/create-task"
+  "path": "/api/templates/999/create-tasks"
 }
 ```
 
 ### cURL Example
 
 ```bash
-curl -X POST http://localhost:8080/api/templates/1/create-task \
+curl -X POST http://localhost:8080/api/templates/1/create-tasks \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
 
@@ -642,6 +753,32 @@ CONSTRAINT fk_template_category
 
 Amikor sablonból feladatot hozol létre, a `TemplateSubtask`-ok átmásolódnak `Subtask`-okká.
 
+### 5. Bulk Task Creation
+
+A `taskCount` mező határozza meg, hogy **hány azonos feladat** jön létre egy template használatakor.
+
+**Példa használat:**
+```
+Template: "Matematika gyakorlás"
+taskCount: 5
+subtaskCount: 6
+→ Result: 5 task létrejön:
+  - "Matematika gyakorlás #1" (6 subtask)
+  - "Matematika gyakorlás #2" (6 subtask)
+  - "Matematika gyakorlás #3" (6 subtask)
+  - "Matematika gyakorlás #4" (6 subtask)
+  - "Matematika gyakorlás #5" (6 subtask)
+```
+
+**Auto-numbering pattern:**
+- Single task: `taskCount: 1` → `"Template Name #1"`
+- Multiple tasks: `taskCount: N` → `"Template Name #1"`, `"#2"`, ..., `"#N"`
+
+**Use cases:**
+- ✅ Gyakorló feladatok sorozata (pl. 10 matekpélda ugyanazzal a struktúrával)
+- ✅ Heti ismétlődő taskok (pl. 5 napi rutinfeladat)
+- ✅ Sprint taskok (pl. 8 user story ugyanolyan részfeladatokkal)
+
 ---
 
 ## Database Schema
@@ -656,6 +793,7 @@ CREATE TABLE task_templates (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     subtask_count INT NOT NULL,
+    task_count INT NOT NULL DEFAULT 1,  -- How many tasks to create (bulk creation)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
@@ -742,6 +880,7 @@ const newTemplate: TemplateRequest = {
   description: 'Create REST API with tests',
   categoryId: 5, // Python Development
   subtaskCount: 4,
+  taskCount: 3, // Creates 3 tasks at once
   templateSubtasks: [
     { subtaskNumber: 1, plannedPoints: 5 },
     { subtaskNumber: 2, plannedPoints: 8 },
@@ -755,11 +894,12 @@ templateService.createTemplate(newTemplate).subscribe(
   error => console.error('Error:', error)
 );
 
-// 3. Create task from template
-templateService.createTaskFromTemplate(templateId).subscribe(
-  task => {
-    console.log('Task created from template:', task);
-    // Task has same structure as template with subtasks
+// 3. Create tasks from template (bulk creation)
+templateService.createTasksFromTemplate(templateId).subscribe(
+  tasks => {
+    console.log(`${tasks.length} tasks created from template`);
+    // tasks = [{name: 'Template #1', ...}, {name: 'Template #2', ...}, ...]
+    // All tasks have same structure with auto-numbered names
   }
 );
 ```
@@ -785,6 +925,14 @@ GET /api/categories/{id}/subtask-trends
 ---
 
 ## Changelog
+
+### Version 1.3.0 (2026-03-04)
+- ✅ **Bulk Task Creation**: Create multiple tasks from one template
+- ✅ **taskCount field**: Define how many tasks to create (1-100)
+- ✅ **Auto-numbering**: Tasks automatically named `#1`, `#2`, `#3`
+- ✅ **Endpoint change**: `/create-task` → `/create-tasks` (returns array)
+- ✅ **V3 Migration**: Added `task_count` column to `task_templates` table
+- ✅ Frontend support: Task count input field and bulk creation handling
 
 ### Version 1.2.0 (2026-03-03)
 - ✅ Template System Phase 1 teljes implementáció
