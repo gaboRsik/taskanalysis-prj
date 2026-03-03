@@ -4,6 +4,7 @@ import { RegisterComponent } from './components/register/register.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { TasksComponent } from './components/tasks/tasks.component';
 import { CategoriesComponent } from './components/categories/categories.component';
+import { TemplatesComponent } from './components/templates/templates.component';
 import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -13,5 +14,6 @@ export const routes: Routes = [
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'tasks', component: TasksComponent, canActivate: [authGuard] },
   { path: 'categories', component: CategoriesComponent, canActivate: [authGuard] },
+  { path: 'templates', component: TemplatesComponent, canActivate: [authGuard] },
   { path: '**', redirectTo: '/dashboard' }
 ];

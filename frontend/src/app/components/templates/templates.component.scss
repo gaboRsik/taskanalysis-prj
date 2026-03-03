@@ -1,0 +1,58 @@
+.template-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.subtasks-preview {
+  border-left: 3px solid #dee2e6;
+  padding-left: 0.5rem;
+}
+
+.card-header {
+  h6 {
+    max-width: 200px;
+  }
+}
+
+// Form styling
+form {
+  .form-label {
+    font-weight: 500;
+  }
+
+  .text-danger {
+    font-weight: bold;
+  }
+}
+
+// Alert animations
+.alert {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Badge styling
+.badge {
+  font-weight: 500;
+}
+
+// Button group in card footer
+.card-footer {
+  .btn-sm {
+    font-size: 0.85rem;
+  }
+}

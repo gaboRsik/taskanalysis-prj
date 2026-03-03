@@ -1,0 +1,266 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-lg-10 offset-lg-1">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+          <i class="bi bi-file-earmark-text me-2"></i>
+          Task Templates
+        </h2>
+        <button class="btn btn-success" (click)="openCreateForm()" *ngIf="!showForm">
+          <i class="bi bi-plus-circle me-2"></i>
+          Create Template
+        </button>
+      </div>
+
+      <!-- Alert Messages -->
+      <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        {{ errorMessage }}
+        <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+      </div>
+
+      <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i>
+        {{ successMessage }}
+        <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+      </div>
+
+      <!-- Create/Edit Form -->
+      <div *ngIf="showForm" class="card mb-4 shadow">
+        <div class="card-header" [ngClass]="isEditMode ? 'bg-warning' : 'bg-success'" class="text-white">
+          <h5 class="mb-0">
+            <i class="bi" [ngClass]="isEditMode ? 'bi-pencil-square' : 'bi-plus-circle'" class="me-2"></i>
+            {{ isEditMode ? 'Edit Template' : 'Create New Template' }}
+          </h5>
+        </div>
+        <div class="card-body">
+          <form (ngSubmit)="saveTemplate()">
+            <!-- Template Name -->
+            <div class="mb-3">
+              <label for="templateName" class="form-label">Template Name <span class="text-danger">*</span></label>
+              <input 
+                type="text" 
+                class="form-control" 
+                id="templateName"
+                [(ngModel)]="templateName" 
+                name="templateName"
+                placeholder="e.g., Python REST API Endpoint"
+                maxlength="255"
+                required
+              />
+            </div>
+
+            <!-- Template Description -->
+            <div class="mb-3">
+              <label for="templateDescription" class="form-label">Description</label>
+              <textarea 
+                class="form-control" 
+                id="templateDescription"
+                [(ngModel)]="templateDescription" 
+                name="templateDescription"
+                rows="3"
+                placeholder="Optional description of this template..."
+                maxlength="5000"
+              ></textarea>
+            </div>
+
+            <!-- Category Selection -->
+            <div class="mb-3">
+              <label for="categoryId" class="form-label">Category <span class="text-danger">*</span></label>
+              <select 
+                class="form-select" 
+                id="categoryId"
+                [(ngModel)]="selectedCategoryId" 
+                name="categoryId"
+                required
+              >
+                <option [ngValue]="null">Select a category...</option>
+                <option *ngFor="let category of categories" [ngValue]="category.id">
+                  {{ category.name }}
+                </option>
+              </select>
+              <small class="text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                Category is required for analytics and trend tracking
+              </small>
+            </div>
+
+            <!-- Subtask Count -->
+            <div class="mb-3">
+              <label for="subtaskCount" class="form-label">Number of Subtasks <span class="text-danger">*</span></label>
+              <input 
+                type="number" 
+                class="form-control" 
+                id="subtaskCount"
+                [(ngModel)]="subtaskCount" 
+                name="subtaskCount"
+                (ngModelChange)="onSubtaskCountChange()"
+                min="1"
+                max="100"
+                required
+              />
+              <small class="text-muted">Must be between 1 and 100</small>
+            </div>
+
+            <!-- Template Subtasks -->
+            <div class="mb-3" *ngIf="templateSubtasks.length > 0">
+              <label class="form-label">Subtask Planned Points</label>
+              <div class="row g-2">
+                <div 
+                  class="col-md-6 col-lg-4" 
+                  *ngFor="let subtask of templateSubtasks; let i = index"
+                >
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">{{ subtask.subtaskNumber }}</span>
+                    <input 
+                      type="number" 
+                      class="form-control" 
+                      [(ngModel)]="subtask.plannedPoints"
+                      [name]="'plannedPoints' + i"
+                      min="0"
+                      placeholder="Points"
+                    />
+                    <span class="input-group-text">pts</span>
+                  </div>
+                </div>
+              </div>
+              <small class="text-muted">
+                <i class="bi bi-lightbulb me-1"></i>
+                Set estimated points for each subtask (optional)
+              </small>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="d-flex justify-content-end gap-2">
+              <button type="button" class="btn btn-secondary" (click)="closeForm()">
+                <i class="bi bi-x-circle me-1"></i>
+                Cancel
+              </button>
+              <button type="submit" class="btn" [ngClass]="isEditMode ? 'btn-warning' : 'btn-success'">
+                <i class="bi" [ngClass]="isEditMode ? 'bi-check-circle' : 'bi-save'" class="me-1"></i>
+                {{ isEditMode ? 'Update Template' : 'Create Template' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Templates List -->
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">
+            <i class="bi bi-list-ul me-2"></i>
+            All Templates
+          </h5>
+          <span class="badge bg-light text-dark">{{ templates.length }}</span>
+        </div>
+        <div class="card-body">
+          <div *ngIf="templates.length === 0 && !showForm" class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            No templates yet. Create your first template to reuse task structures!
+          </div>
+
+          <!-- Templates Grid -->
+          <div class="row g-3">
+            <div class="col-md-6 col-lg-4" *ngFor="let template of templates">
+              <div class="card h-100 template-card">
+                <div class="card-header bg-light">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <h6 class="mb-0 text-truncate" [title]="template.name">
+                      <i class="bi bi-file-earmark-text me-1"></i>
+                      {{ template.name }}
+                    </h6>
+                    <span class="badge bg-primary">{{ template.subtaskCount }} tasks</span>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <!-- Category Badge -->
+                  <div class="mb-2">
+                    <span class="badge bg-info">
+                      <i class="bi bi-folder me-1"></i>
+                      {{ template.categoryName }}
+                    </span>
+                  </div>
+
+                  <!-- Description -->
+                  <p class="card-text small text-muted mb-2" *ngIf="template.description">
+                    {{ template.description | slice:0:100 }}{{ template.description.length > 100 ? '...' : '' }}
+                  </p>
+                  <p class="card-text small text-muted mb-2" *ngIf="!template.description">
+                    <em>No description</em>
+                  </p>
+
+                  <!-- Subtasks Preview -->
+                  <div class="subtasks-preview mb-2" *ngIf="template.templateSubtasks.length > 0">
+                    <small class="text-muted">
+                      <i class="bi bi-list-check me-1"></i>
+                      Subtasks: 
+                    </small>
+                    <div class="d-flex flex-wrap gap-1 mt-1">
+                      <span 
+                        class="badge bg-secondary" 
+                        *ngFor="let subtask of template.templateSubtasks"
+                        [title]="'Subtask ' + subtask.subtaskNumber + ': ' + subtask.plannedPoints + ' points'"
+                      >
+                        #{{ subtask.subtaskNumber }}: {{ subtask.plannedPoints }}pts
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Metadata -->
+                  <small class="text-muted d-block">
+                    <i class="bi bi-calendar me-1"></i>
+                    Created: {{ template.createdAt | date:'short' }}
+                  </small>
+                </div>
+
+                <!-- Card Actions -->
+                <div class="card-footer bg-white border-top">
+                  <div class="d-flex gap-1">
+                    <button 
+                      class="btn btn-sm btn-success flex-fill" 
+                      (click)="createTaskFromTemplate(template)"
+                      title="Create task from this template"
+                    >
+                      <i class="bi bi-plus-circle"></i>
+                      Use
+                    </button>
+                    <button 
+                      class="btn btn-sm btn-outline-primary" 
+                      (click)="openEditForm(template)"
+                      title="Edit template"
+                    >
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button 
+                      class="btn btn-sm btn-outline-danger" 
+                      (click)="deleteTemplate(template)"
+                      title="Delete template"
+                    >
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Help Section -->
+      <div class="card mt-4 border-info">
+        <div class="card-body">
+          <h6 class="card-title">
+            <i class="bi bi-question-circle me-2"></i>
+            About Templates
+          </h6>
+          <p class="card-text small mb-0">
+            Templates allow you to create reusable task structures. Each template belongs to a category and defines the number of subtasks with planned points. 
+            This enables consistent task creation and performance trend analysis within each category.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
