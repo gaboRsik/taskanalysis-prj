@@ -32,6 +32,9 @@ public class TaskService {
     @Autowired
     private TimeEntryRepository timeEntryRepository;
 
+    @Autowired
+    private TaskTemplateRepository taskTemplateRepository;
+
     @Transactional
     public TaskResponse createTask(Long userId, TaskRequest request) {
         User user = userRepository.findById(userId)
@@ -214,4 +217,63 @@ public class TaskService {
         );
     }
 
+    /**
+     * Create a task from a template
+     * @param userId User ID
+     * @param templateId Template ID
+     * @return Created task response
+     */
+    @Transactional
+    public TaskResponse createTaskFromTemplate(Long userId, Long templateId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        TaskTemplate template = taskTemplateRepository.findById(templateId)
+                .orElseThrow(() -> new RuntimeException("Template not found"));
+
+        // Ensure template belongs to the user
+        if (!template.getUser().getId().equals(userId)) {
+            throw new RuntimeException("Access denied to template");
+        }
+
+        // Create task from template
+        Task task = new Task();
+        task.setUser(user);
+        task.setName(template.getName());
+        task.setDescription(template.getDescription());
+        task.setSubtaskCount(template.getSubtaskCount());
+        task.setCategory(template.getCategory());
+
+        Task savedTask = taskRepository.save(task);
+
+        // Create subtasks from template subtasks
+        List<Subtask> subtasks = new ArrayList<>();
+        
+        if (template.getTemplateSubtasks() != null && !template.getTemplateSubtasks().isEmpty()) {
+            // Create subtasks based on template subtasks with planned points
+            for (TemplateSubtask templateSubtask : template.getTemplateSubtasks()) {
+                Subtask subtask = new Subtask();
+                subtask.setTask(savedTask);
+                subtask.setSubtaskNumber(templateSubtask.getSubtaskNumber());
+                subtask.setPlannedPoints(templateSubtask.getPlannedPoints());
+                subtask.setStatus(Subtask.SubtaskStatus.NOT_STARTED);
+                subtasks.add(subtask);
+            }
+        } else {
+            // Create default subtasks if no template subtasks defined
+            for (int i = 1; i <= template.getSubtaskCount(); i++) {
+                Subtask subtask = new Subtask();
+                subtask.setTask(savedTask);
+                subtask.setSubtaskNumber(i);
+                subtask.setStatus(Subtask.SubtaskStatus.NOT_STARTED);
+                subtasks.add(subtask);
+            }
+        }
+        
+        subtaskRepository.saveAll(subtasks);
+
+        return mapToResponse(savedTask, subtasks);
+    }
+
 }
+
