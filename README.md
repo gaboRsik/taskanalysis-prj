@@ -10,6 +10,11 @@ Task Analysis application - részfeladat szintű időmérés és elemzés.
 - **MySQL 8.0**
 - **Spring Security + JWT**
 - **Flyway Migration**
+- **Security Features:** 🆕
+  - Rate Limiting (Bucket4j)
+  - Account Lockout
+  - Password Policy Enforcement
+  - Structured Logging
 
 ### Frontend
 - **Angular** (Standalone Components)
@@ -81,7 +86,43 @@ Az adatbázis automatikusan létrejön a Flyway migration-ökkel az első indít
 - `subtasks` - Részfeladatok
 - `time_entries` - Időbejegyzések
 
-## 🐋 Docker Deployment (Production)
+## � Security Features 🆕
+
+**Rate Limiting:**
+- 100 requests/perc (API)
+- 5 requests/perc (Auth endpoints)
+
+**Account Protection:**
+- 5 sikertelen login után 15 perc lockout
+- Email-based tracking
+
+**Password Policy:**
+- Min 8 karakter
+- Nagybetű + kisbetű + szám + speciális karakter
+
+**Error Handling:**
+- Standardizált JSON error responses
+- Structured logging (JSON format)
+- Security audit log
+
+Részletes dokumentáció: **[Security Features](docs/SECURITY_FEATURES.md)**
+
+## 🧪 Testing
+
+**Run tests:**
+```bash
+cd backend
+mvn test
+```
+
+**Test Coverage:**
+- Password validator tests (11 tests)
+- Login attempt service tests (9 tests)
+- Rate limit service tests (9 tests)
+
+Részletek: [Test README](backend/src/test/java/README.md)
+
+## �🐋 Docker Deployment (Production)
 
 ### Quick Start - Production
 
@@ -166,7 +207,14 @@ taskanalysis-prj/
 - DTO-k és mapper-ek
 - Service réteg
 - REST API Controller-ek
-- **Export funkció (Excel)** 🆕
+- **Security Features** 🆕
+  - Rate limiting (Bucket4j)
+  - Account lockout mechanism
+  - Password policy enforcement
+  - Global exception handler
+  - Structured logging
+  - Unit tests
+- **Export funkció (Excel)** 
   - Email küldés mellékletként
   - Közvetlen letöltés
   - Adaptive UX (mobil/desktop)
@@ -175,6 +223,8 @@ taskanalysis-prj/
 - Frontend Angular komponensek
 - Dashboard analytics
 - PDF export
+- Category Analytics (következő sprint)
+- Template System (következő sprint)
 
 ## Export Feature 🆕
 
@@ -208,9 +258,11 @@ Ez a projekt a BMAD (Business Model Analysis & Design) workflow-t használja a f
 
 - [PRD](docs/prd.md) - Product Requirements Document
 - [Architecture](docs/architecture.md) - Technikai architektúra
+- [Security Features](docs/SECURITY_FEATURES.md) - Biztonsági funkciók 🆕
 - [Export Feature](docs/EXPORT_FEATURE.md) - Export funkció dokumentáció
-- [AWS Deployment](docs/AWS_DEPLOYMENT_GUIDE.md) - AWS deployment útmutató 🆕
+- [AWS Deployment](docs/AWS_DEPLOYMENT_GUIDE.md) - AWS deployment útmutató
+- [Testing Guide](backend/src/test/java/README.md) - Unit teszt dokumentáció 🆕
 
 ---
 
-*Utolsó frissítés: 2026-02-18 - Docker deployment és AWS guide hozzáadva*
+*Utolsó frissítés: 2026-03-01 - Security hardening phase implementálva*

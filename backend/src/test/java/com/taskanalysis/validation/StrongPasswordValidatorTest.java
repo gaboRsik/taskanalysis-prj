@@ -8,6 +8,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for StrongPasswordValidator
@@ -26,6 +28,10 @@ class StrongPasswordValidatorTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         validator = new StrongPasswordValidator();
+        
+        // Setup mock chain for constraint violations
+        when(context.buildConstraintViolationWithTemplate(anyString()))
+                .thenReturn(violationBuilder);
         
         // Initialize with default settings
         StrongPassword annotation = createAnnotation(8, true, true, true, true);

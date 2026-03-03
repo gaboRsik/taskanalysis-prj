@@ -18,14 +18,22 @@ import java.time.Duration;
 @Slf4j
 public class RateLimitService {
 
-    // Cache to store buckets for each IP/user
+    // Cache to store buckets for each IP/user (general API endpoints)
     private final LoadingCache<String, Bucket> cache;
+    
+    // Cache to store buckets for authentication endpoints (stricter limits)
+    private final LoadingCache<String, Bucket> authCache;
 
     public RateLimitService() {
         this.cache = Caffeine.newBuilder()
                 .maximumSize(10000) // Max 10k different IPs/users
                 .expireAfterAccess(Duration.ofHours(1)) // Clean up after 1 hour of inactivity
                 .build(this::createNewBucket);
+        
+        this.authCache = Caffeine.newBuilder()
+                .maximumSize(10000)
+                .expireAfterAccess(Duration.ofHours(1))
+                .build(this::createAuthBucket);
     }
 
     /**
@@ -56,6 +64,11 @@ public class RateLimitService {
      * @return true if request is allowed, false otherwise
      */
     public boolean tryConsume(String key) {
+        if (key == null || key.isEmpty()) {
+            log.warn("Rate limit check attempted with null or empty key");
+            return false;
+        }
+        
         Bucket bucket = cache.get(key);
         return bucket.tryConsume(1);
     }
@@ -66,12 +79,12 @@ public class RateLimitService {
      * @return true if request is allowed, false otherwise
      */
     public boolean tryConsumeAuth(String key) {
-        String authKey = "auth:" + key;
-        LoadingCache<String, Bucket> authCache = Caffeine.newBuilder()
-                .maximumSize(10000)
-                .expireAfterAccess(Duration.ofHours(1))
-                .build(this::createAuthBucket);
+        if (key == null || key.isEmpty()) {
+            log.warn("Auth rate limit check attempted with null or empty key");
+            return false;
+        }
         
+        String authKey = "auth:" + key;
         Bucket bucket = authCache.get(authKey);
         boolean consumed = bucket.tryConsume(1);
         
@@ -88,6 +101,10 @@ public class RateLimitService {
      * @return seconds until next token is available
      */
     public long getSecondsUntilRefill(String key) {
+        if (key == null || key.isEmpty()) {
+            return 0;
+        }
+        
         Bucket bucket = cache.get(key);
         return bucket.estimateAbilityToConsume(1).getNanosToWaitForRefill() / 1_000_000_000;
     }
