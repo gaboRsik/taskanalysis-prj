@@ -4,6 +4,8 @@ import com.taskanalysis.entity.Category;
 import com.taskanalysis.entity.TaskTemplate;
 import com.taskanalysis.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -24,6 +26,12 @@ public interface TaskTemplateRepository extends JpaRepository<TaskTemplate, Long
      * Find a template by ID and user (ensures user can only access their own templates)
      */
     Optional<TaskTemplate> findByIdAndUser(Long id, User user);
+
+    /**
+     * Find a template by ID and user with template subtasks eagerly fetched (for update operations)
+     */
+    @Query("SELECT t FROM TaskTemplate t LEFT JOIN FETCH t.templateSubtasks WHERE t.id = :id AND t.user = :user")
+    Optional<TaskTemplate> findByIdAndUserWithSubtasks(@Param("id") Long id, @Param("user") User user);
 
     /**
      * Check if a template name already exists for a user in a specific category

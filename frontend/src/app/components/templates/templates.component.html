@@ -39,11 +39,11 @@
             <!-- Template Name -->
             <div class="mb-3">
               <label for="templateName" class="form-label">Template Name <span class="text-danger">*</span></label>
-              <input 
-                type="text" 
-                class="form-control" 
+              <input
+                type="text"
+                class="form-control"
                 id="templateName"
-                [(ngModel)]="templateName" 
+                [(ngModel)]="templateName"
                 name="templateName"
                 placeholder="e.g., Python REST API Endpoint"
                 maxlength="255"
@@ -54,10 +54,10 @@
             <!-- Template Description -->
             <div class="mb-3">
               <label for="templateDescription" class="form-label">Description</label>
-              <textarea 
-                class="form-control" 
+              <textarea
+                class="form-control"
                 id="templateDescription"
-                [(ngModel)]="templateDescription" 
+                [(ngModel)]="templateDescription"
                 name="templateDescription"
                 rows="3"
                 placeholder="Optional description of this template..."
@@ -68,10 +68,10 @@
             <!-- Category Selection -->
             <div class="mb-3">
               <label for="categoryId" class="form-label">Category <span class="text-danger">*</span></label>
-              <select 
-                class="form-select" 
+              <select
+                class="form-select"
                 id="categoryId"
-                [(ngModel)]="selectedCategoryId" 
+                [(ngModel)]="selectedCategoryId"
                 name="categoryId"
                 required
               >
@@ -86,31 +86,14 @@
               </small>
             </div>
 
-            <!-- Subtask Count -->
-            <div class="mb-3">
-              <label for="subtaskCount" class="form-label">Number of Subtasks <span class="text-danger">*</span></label>
-              <input 
-                type="number" 
-                class="form-control" 
-                id="subtaskCount"
-                [(ngModel)]="subtaskCount" 
-                name="subtaskCount"
-                (ngModelChange)="onSubtaskCountChange()"
-                min="1"
-                max="100"
-                required
-              />
-              <small class="text-muted">Must be between 1 and 100</small>
-            </div>
-
             <!-- Task Count -->
             <div class="mb-3">
               <label for="taskCount" class="form-label">Number of Tasks to Create <span class="text-danger">*</span></label>
-              <input 
-                type="number" 
-                class="form-control" 
+              <input
+                type="number"
+                class="form-control"
                 id="taskCount"
-                [(ngModel)]="taskCount" 
+                [(ngModel)]="taskCount"
                 name="taskCount"
                 min="1"
                 max="100"
@@ -122,19 +105,55 @@
               </small>
             </div>
 
+            <!-- Subtask Count -->
+            <div class="mb-3">
+              <label for="subtaskCount" class="form-label">Number of Subtasks <span class="text-danger">*</span></label>
+              <input
+                type="number"
+                class="form-control"
+                id="subtaskCount"
+                [(ngModel)]="subtaskCount"
+                name="subtaskCount"
+                (ngModelChange)="onSubtaskCountChange()"
+                min="1"
+                max="100"
+                required
+              />
+              <small class="text-muted">Must be between 1 and 100</small>
+            </div>
+
+<!--            &lt;!&ndash; Task Count &ndash;&gt;-->
+<!--            <div class="mb-3">-->
+<!--              <label for="taskCount" class="form-label">Number of Tasks to Create <span class="text-danger">*</span></label>-->
+<!--              <input -->
+<!--                type="number" -->
+<!--                class="form-control" -->
+<!--                id="taskCount"-->
+<!--                [(ngModel)]="taskCount" -->
+<!--                name="taskCount"-->
+<!--                min="1"-->
+<!--                max="100"-->
+<!--                required-->
+<!--              />-->
+<!--              <small class="text-muted">-->
+<!--                <i class="bi bi-info-circle me-1"></i>-->
+<!--                How many tasks will be created when using this template (1-100)-->
+<!--              </small>-->
+<!--            </div>-->
+
             <!-- Template Subtasks -->
             <div class="mb-3" *ngIf="templateSubtasks.length > 0">
               <label class="form-label">Subtask Planned Points</label>
               <div class="row g-2">
-                <div 
-                  class="col-md-6 col-lg-4" 
+                <div
+                  class="col-md-6 col-lg-4"
                   *ngFor="let subtask of templateSubtasks; let i = index"
                 >
                   <div class="input-group input-group-sm">
                     <span class="input-group-text">{{ subtask.subtaskNumber }}</span>
-                    <input 
-                      type="number" 
-                      class="form-control" 
+                    <input
+                      type="number"
+                      class="form-control"
                       [(ngModel)]="subtask.plannedPoints"
                       [name]="'plannedPoints' + i"
                       min="0"
@@ -220,11 +239,11 @@
                   <div class="subtasks-preview mb-2" *ngIf="template.templateSubtasks.length > 0">
                     <small class="text-muted">
                       <i class="bi bi-list-check me-1"></i>
-                      Subtasks: 
+                      Subtasks:
                     </small>
                     <div class="d-flex flex-wrap gap-1 mt-1">
-                      <span 
-                        class="badge bg-secondary" 
+                      <span
+                        class="badge bg-secondary"
                         *ngFor="let subtask of template.templateSubtasks"
                         [title]="'Subtask ' + subtask.subtaskNumber + ': ' + subtask.plannedPoints + ' points'"
                       >
@@ -243,23 +262,23 @@
                 <!-- Card Actions -->
                 <div class="card-footer bg-white border-top">
                   <div class="d-flex gap-1">
-                    <button 
-                      class="btn btn-sm btn-success flex-fill" 
+                    <button
+                      class="btn btn-sm btn-success flex-fill"
                       (click)="createTaskFromTemplate(template)"
                       title="Create task from this template"
                     >
                       <i class="bi bi-plus-circle"></i>
                       Use
                     </button>
-                    <button 
-                      class="btn btn-sm btn-outline-primary" 
+                    <button
+                      class="btn btn-sm btn-outline-primary"
                       (click)="openEditForm(template)"
                       title="Edit template"
                     >
                       <i class="bi bi-pencil"></i>
                     </button>
-                    <button 
-                      class="btn btn-sm btn-outline-danger" 
+                    <button
+                      class="btn btn-sm btn-outline-danger"
                       (click)="deleteTemplate(template)"
                       title="Delete template"
                     >
@@ -281,7 +300,7 @@
             About Templates
           </h6>
           <p class="card-text small mb-0">
-            Templates allow you to create reusable task structures. Each template belongs to a category and defines the number of subtasks with planned points. 
+            Templates allow you to create reusable task structures. Each template belongs to a category and defines the number of subtasks with planned points.
             This enables consistent task creation and performance trend analysis within each category.
           </p>
         </div>

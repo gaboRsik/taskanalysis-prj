@@ -8,6 +8,7 @@ import com.taskanalysis.exception.BusinessException;
 import com.taskanalysis.exception.ResourceNotFoundException;
 import com.taskanalysis.repository.CategoryRepository;
 import com.taskanalysis.repository.TaskTemplateRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class TemplateService {
 
     private final TaskTemplateRepository templateRepository;
     private final CategoryRepository categoryRepository;
+    private final EntityManager entityManager;
 
     /**
      * Get all templates for the current user
@@ -109,7 +111,7 @@ public class TemplateService {
     public TemplateResponse updateTemplate(Long id, TemplateRequest request, User user) {
         log.info("Updating template {} for user: {}", id, user.getEmail());
 
-        TaskTemplate template = templateRepository.findByIdAndUser(id, user)
+        TaskTemplate template = templateRepository.findByIdAndUserWithSubtasks(id, user)
                 .orElseThrow(() -> new ResourceNotFoundException("Template not found with id: " + id));
 
         // Validate category (required)
@@ -133,7 +135,9 @@ public class TemplateService {
         template.setSubtaskCount(request.getSubtaskCount());
         template.setTaskCount(request.getTaskCount());
 
-        // Update template subtasks
+        // Clear existing subtasks and flush to database immediately
+        template.getTemplateSubtasks().clear();
+        entityManager.flush(); // Force delete of old subtasks before adding new ones
         template.getTemplateSubtasks().clear();
         
         if (request.getTemplateSubtasks() != null && !request.getTemplateSubtasks().isEmpty()) {
