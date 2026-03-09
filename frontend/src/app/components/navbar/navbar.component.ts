@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { ThemeService } from '../../services/theme.service';
 import { User } from '../../models/auth.model';
 
 @Component({
@@ -16,7 +17,8 @@ export class NavbarComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    public themeService: ThemeService
   ) {}
 
   ngOnInit(): void {
@@ -32,5 +34,9 @@ export class NavbarComponent implements OnInit {
 
   isAuthenticated(): boolean {
     return this.authService.isAuthenticated();
+  }
+
+  toggleTheme(): void {
+    this.themeService.toggleTheme();
   }
 }

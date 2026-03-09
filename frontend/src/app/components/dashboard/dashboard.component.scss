@@ -142,3 +142,63 @@
     letter-spacing: 0.5px;
   }
 }
+
+/* ========================================
+   NGX-CHARTS DARK MODE SUPPORT
+   ======================================== */
+
+// Light mode - default dark text
+:host ::ng-deep {
+  .ngx-charts {
+    text {
+      fill: #212529;
+    }
+    
+    .tick text,
+    .axis-label {
+      fill: #212529;
+    }
+    
+    .gridline-path {
+      stroke: #dee2e6;
+    }
+    
+    .area-label,
+    .label {
+      fill: #212529;
+    }
+  }
+}
+
+// Dark mode - light text for visibility
+body.dark-theme {
+  :host ::ng-deep {
+    .ngx-charts {
+      text {
+        fill: #e8eaed !important;
+      }
+      
+      .tick text,
+      .axis-label {
+        fill: #e8eaed !important;
+      }
+      
+      .gridline-path {
+        stroke: #3a3f54 !important;
+      }
+      
+      .area-label,
+      .label {
+        fill: #e8eaed !important;
+      }
+      
+      .legend-label-text {
+        color: #e8eaed !important;
+      }
+      
+      .advanced-pie-legend {
+        color: #e8eaed !important;
+      }
+    }
+  }
+}

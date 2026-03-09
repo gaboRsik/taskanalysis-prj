@@ -8,6 +8,7 @@ import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { AuthService } from '../../services/auth.service';
 import { TaskService } from '../../services/task.service';
 import { TimerService } from '../../services/timer.service';
+import { ThemeService } from '../../services/theme.service';
 import { Task, TaskStatus, TimerResponse, Subtask } from '../../models/task.model';
 import { SubtaskPointsModalComponent } from '../subtask-points-modal/subtask-points-modal.component';
 
@@ -43,6 +44,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   colorScheme: any = {
     domain: ['#5AA454', '#A10A28', '#C7B42C', '#AAAAAA', '#7aa3e5', '#a27ea8']
   };
+  
+  // Chart text colors for dark mode support
+  xAxisTickFormatting = (val: any) => val;
+  yAxisTickFormatting = (val: any) => val;
 
   // Points modal
   isPointsModalOpen = false;
@@ -55,13 +60,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private taskService: TaskService,
     private timerService: TimerService,
-    private router: Router
+    private router: Router,
+    public themeService: ThemeService
   ) {}
 
   ngOnInit(): void {
     this.authService.currentUser$.pipe(takeUntil(this.destroy$)).subscribe(
       user => this.currentUser = user
     );
+    
+    // Subscribe to theme changes to update chart colors
+    this.themeService.theme$.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.updateChartColors();
+    });
 
     this.loadTasks();
     this.checkActiveTimer();
@@ -243,5 +254,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
           alert('Hiba történt a pontok mentése során');
         }
       });
+  }
+  
+  updateChartColors(): void {
+    // This method triggers change detection to update chart styling
+    // The actual color changes are handled by CSS
   }
 }

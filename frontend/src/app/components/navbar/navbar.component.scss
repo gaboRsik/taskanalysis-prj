@@ -10,3 +10,32 @@
     font-weight: 600;
   }
 }
+
+/* Dark Mode Navbar Adjustments */
+body.dark-theme {
+  .navbar {
+    background-color: var(--navbar-bg) !important;
+  }
+  
+  .navbar-dark {
+    .navbar-brand,
+    .navbar-text,
+    .nav-link {
+      color: var(--navbar-text) !important;
+    }
+    
+    .nav-link:hover {
+      background-color: var(--navbar-hover);
+      border-radius: 0.25rem;
+    }
+  }
+  
+  .btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.3);
+    
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+  }
+}
