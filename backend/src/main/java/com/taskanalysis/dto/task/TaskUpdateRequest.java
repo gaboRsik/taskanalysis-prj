@@ -1,5 +1,7 @@
 package com.taskanalysis.dto.task;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -15,5 +17,9 @@ public class TaskUpdateRequest {
     private String description;
 
     private Long categoryId;
+
+    @Min(value = 0, message = "Planned time must be non-negative")
+    @Max(value = 10000, message = "Planned time must not exceed 10000 minutes")
+    private Integer plannedTotalTimeMinutes;
 
 }

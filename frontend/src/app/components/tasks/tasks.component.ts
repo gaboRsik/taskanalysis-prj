@@ -25,9 +25,11 @@ export class TasksComponent implements OnInit, OnDestroy {
   newTaskTitle: string = '';
   newTaskCategoryId: number | null = null;
   newTaskSubtaskCount: number = 3;
+  newTaskPlannedTime: number | null = null;
 
   editingTask: Task | null = null;
   editTaskName: string = '';
+  editTaskPlannedTime: number | null = null;
 
   // Points modal
   isPointsModalOpen = false;
@@ -100,12 +102,14 @@ export class TasksComponent implements OnInit, OnDestroy {
       this.taskService.createTask({
         name: this.newTaskTitle,
         categoryId: this.newTaskCategoryId,
-        subtaskCount: this.newTaskSubtaskCount
+        subtaskCount: this.newTaskSubtaskCount,
+        plannedTotalTimeMinutes: this.newTaskPlannedTime || undefined
       }).pipe(takeUntil(this.destroy$)).subscribe({
         next: (task) => {
           this.newTaskTitle = '';
           this.newTaskCategoryId = null;
           this.newTaskSubtaskCount = 3;
+          this.newTaskPlannedTime = null;
           this.loadTasks(); // Reload the entire list to get correct order
         },
         error: (error) => console.error('Error creating task:', error)
@@ -116,16 +120,26 @@ export class TasksComponent implements OnInit, OnDestroy {
   startEdit(task: Task): void {
     this.editingTask = task;
     this.editTaskName = task.name;
+    this.editTaskPlannedTime = task.plannedTotalTimeMinutes || null;
   }
 
   cancelEdit(): void {
     this.editingTask = null;
     this.editTaskName = '';
+    this.editTaskPlannedTime = null;
   }
 
   updateTask(): void {
     if (this.editingTask && this.editTaskName.trim()) {
-      this.taskService.update(this.editingTask.id, { name: this.editTaskName })
+      const updateData: any = { 
+        name: this.editTaskName.trim(),
+        plannedTotalTimeMinutes: this.editTaskPlannedTime || undefined
+      };
+      
+      console.log('Sending update data:', updateData);
+      console.log('Task ID:', this.editingTask.id);
+      
+      this.taskService.update(this.editingTask.id, updateData)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (updated: Task) => {

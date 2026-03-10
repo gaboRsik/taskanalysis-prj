@@ -19,6 +19,15 @@ export interface Task {
   subtasks: Subtask[];
   totalPlannedPoints?: number;
   totalActualPoints?: number;
+  plannedTotalTimeMinutes?: number;
+  totalActualTimeSeconds?: number;
+  
+  // Performance Metrics
+  plannedEfficiencyScore?: number;        // plannedPoints / plannedTimeHours
+  actualEfficiencyScore?: number;          // actualPoints / actualTimeHours
+  plannedTimePerPoint?: number;            // plannedTimeMinutes / plannedPoints
+  actualTimePerPoint?: number;             // actualTimeMinutes / actualPoints
+  efficiencyVariancePercent?: number;      // (actual - planned) / planned * 100
 }
 
 export interface TaskRequest {
@@ -26,6 +35,7 @@ export interface TaskRequest {
   description?: string;
   categoryId?: number;
   subtaskCount?: number;
+  plannedTotalTimeMinutes?: number;
 }
 
 export interface Subtask {
@@ -41,6 +51,15 @@ export interface Subtask {
   totalTimeSeconds: number;
   createdAt: string;
   updatedAt: string;
+
+  // Computed metrics
+  proportionalPlannedTimeMinutes?: number;
+  plannedEfficiencyScore?: number;
+  actualEfficiencyScore?: number;
+  plannedTimePerPoint?: number;
+  actualTimePerPoint?: number;
+  efficiencyVariancePercent?: number;
+  timeVariancePercent?: number;
 }
 
 export interface SubtaskRequest {

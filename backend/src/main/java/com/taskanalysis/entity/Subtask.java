@@ -59,4 +59,139 @@ public class Subtask {
         COMPLETED
     }
 
+    // ===== Computed Metrics (Transient - not persisted) =====
+
+    /**
+     * Calculate proportional planned time for this subtask
+     * Formula: (subtask plannedPoints / task totalPlannedPoints) * task plannedTotalTimeMinutes
+     * @return Proportional planned time in minutes, or null if insufficient data
+     */
+    @Transient
+    public Integer getProportionalPlannedTimeMinutes() {
+        if (task == null || plannedPoints == null || task.getPlannedTotalTimeMinutes() == null) {
+            return null;
+        }
+        
+        Integer totalPlannedPoints = task.getTotalPlannedPoints();
+        if (totalPlannedPoints == null || totalPlannedPoints == 0) {
+            return null;
+        }
+        
+        return (int) Math.round((plannedPoints.doubleValue() / totalPlannedPoints) * task.getPlannedTotalTimeMinutes());
+    }
+
+    /**
+     * Calculate total actual time spent on this subtask
+     * @return Total time in seconds
+     */
+    @Transient
+    public Integer getTotalActualTimeSeconds() {
+        if (timeEntries == null || timeEntries.isEmpty()) {
+            return 0;
+        }
+        
+        long total = timeEntries.stream()
+                .mapToLong(entry -> entry.getDurationSeconds() != null ? entry.getDurationSeconds().longValue() : 0L)
+                .sum();
+        
+        return (int) total;
+    }
+
+    /**
+     * Calculate planned efficiency score (points per minute)
+     * Formula: plannedPoints / proportionalPlannedTimeMinutes
+     * @return Efficiency score or null if insufficient data
+     */
+    @Transient
+    public Double getPlannedEfficiencyScore() {
+        Integer proportionalTime = getProportionalPlannedTimeMinutes();
+        if (proportionalTime == null || proportionalTime == 0 || plannedPoints == null || plannedPoints == 0) {
+            return null;
+        }
+        
+        return plannedPoints / proportionalTime.doubleValue();
+    }
+
+    /**
+     * Calculate actual efficiency score (points per minute)
+     * Formula: actualPoints / (totalTimeSeconds / 60)
+     * @return Efficiency score or null if insufficient data
+     */
+    @Transient
+    public Double getActualEfficiencyScore() {
+        Integer totalTime = getTotalActualTimeSeconds();
+        if (totalTime == null || totalTime == 0 || actualPoints == null || actualPoints == 0) {
+            return null;
+        }
+        
+        return actualPoints / (totalTime / 60.0);
+    }
+
+    /**
+     * Calculate planned time per point (minutes)
+     * Formula: proportionalPlannedTimeMinutes / plannedPoints
+     * @return Minutes per point or null if insufficient data
+     */
+    @Transient
+    public Double getPlannedTimePerPoint() {
+        Integer proportionalTime = getProportionalPlannedTimeMinutes();
+        if (proportionalTime == null || plannedPoints == null || plannedPoints == 0) {
+            return null;
+        }
+        
+        return proportionalTime / plannedPoints.doubleValue();
+    }
+
+    /**
+     * Calculate actual time per point (minutes)
+     * Formula: (totalTimeSeconds / 60) / actualPoints
+     * @return Minutes per point or null if insufficient data
+     */
+    @Transient
+    public Double getActualTimePerPoint() {
+        Integer totalTime = getTotalActualTimeSeconds();
+        if (totalTime == null || totalTime == 0 || actualPoints == null || actualPoints == 0) {
+            return null;
+        }
+        
+        return (totalTime / 60.0) / actualPoints;
+    }
+
+    /**
+     * Calculate efficiency variance percentage
+     * Formula: ((actualEfficiency - plannedEfficiency) / plannedEfficiency) * 100
+     * Positive = better than planned, Negative = worse than planned
+     * @return Variance percentage or null if insufficient data
+     */
+    @Transient
+    public Double getEfficiencyVariancePercent() {
+        Double planned = getPlannedEfficiencyScore();
+        Double actual = getActualEfficiencyScore();
+        
+        if (planned == null || actual == null || planned == 0) {
+            return null;
+        }
+        
+        return ((actual - planned) / planned) * 100;
+    }
+
+    /**
+     * Calculate time variance percentage
+     * Formula: ((actualTime - plannedTime) / plannedTime) * 100
+     * Positive = took longer, Negative = took less time
+     * @return Variance percentage or null if insufficient data
+     */
+    @Transient
+    public Double getTimeVariancePercent() {
+        Integer proportionalTime = getProportionalPlannedTimeMinutes();
+        Integer totalTime = getTotalActualTimeSeconds();
+        
+        if (proportionalTime == null || proportionalTime == 0 || totalTime == null) {
+            return null;
+        }
+        
+        double actualTimeMinutes = totalTime / 60.0;
+        return ((actualTimeMinutes - proportionalTime) / proportionalTime) * 100;
+    }
+
 }

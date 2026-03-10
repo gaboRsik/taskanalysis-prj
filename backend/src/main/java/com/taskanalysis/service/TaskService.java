@@ -45,6 +45,7 @@ public class TaskService {
         task.setName(request.getName());
         task.setDescription(request.getDescription());
         task.setSubtaskCount(request.getSubtaskCount());
+        task.setPlannedTotalTimeMinutes(request.getPlannedTotalTimeMinutes());
 
         if (request.getCategoryId() != null) {
             Category category = categoryRepository.findById(request.getCategoryId())
@@ -132,6 +133,10 @@ public class TaskService {
             task.setDescription(request.getDescription());
         }
 
+        if (request.getPlannedTotalTimeMinutes() != null) {
+            task.setPlannedTotalTimeMinutes(request.getPlannedTotalTimeMinutes());
+        }
+
         if (request.getCategoryId() != null) {
             Category category = categoryRepository.findById(request.getCategoryId())
                     .orElseThrow(() -> new RuntimeException("Category not found"));
@@ -169,6 +174,7 @@ public class TaskService {
         response.setStatus(task.getStatus());
         response.setCreatedAt(task.getCreatedAt());
         response.setUpdatedAt(task.getUpdatedAt());
+        response.setPlannedTotalTimeMinutes(task.getPlannedTotalTimeMinutes());
 
         if (task.getCategory() != null) {
             response.setCategoryId(task.getCategory().getId());
@@ -193,6 +199,16 @@ public class TaskService {
         
         response.setTotalPlannedPoints(totalPlannedPoints);
         response.setTotalActualPoints(totalActualPoints);
+        
+        // Calculate total actual time
+        response.setTotalActualTimeSeconds(task.getTotalActualTimeSeconds());
+        
+        // Set performance metrics (computed from Task entity)
+        response.setPlannedEfficiencyScore(task.getPlannedEfficiencyScore());
+        response.setActualEfficiencyScore(task.getActualEfficiencyScore());
+        response.setPlannedTimePerPoint(task.getPlannedTimePerPoint());
+        response.setActualTimePerPoint(task.getActualTimePerPoint());
+        response.setEfficiencyVariancePercent(task.getEfficiencyVariancePercent());
 
         return response;
     }
@@ -204,17 +220,27 @@ public class TaskService {
                 .mapToLong(TimeEntry::getDurationSeconds)
                 .sum();
 
-        return new SubtaskResponse(
-                subtask.getId(),
-                subtask.getTask().getId(),
-                subtask.getSubtaskNumber(),
-                subtask.getPlannedPoints(),
-                subtask.getActualPoints(),
-                subtask.getStatus(),
-                totalSeconds,
-                subtask.getCreatedAt(),
-                subtask.getUpdatedAt()
-        );
+        SubtaskResponse response = new SubtaskResponse();
+        response.setId(subtask.getId());
+        response.setTaskId(subtask.getTask().getId());
+        response.setSubtaskNumber(subtask.getSubtaskNumber());
+        response.setPlannedPoints(subtask.getPlannedPoints());
+        response.setActualPoints(subtask.getActualPoints());
+        response.setStatus(subtask.getStatus());
+        response.setTotalTimeSeconds(totalSeconds);
+        response.setCreatedAt(subtask.getCreatedAt());
+        response.setUpdatedAt(subtask.getUpdatedAt());
+
+        // Populate computed metrics from @Transient methods
+        response.setProportionalPlannedTimeMinutes(subtask.getProportionalPlannedTimeMinutes());
+        response.setPlannedEfficiencyScore(subtask.getPlannedEfficiencyScore());
+        response.setActualEfficiencyScore(subtask.getActualEfficiencyScore());
+        response.setPlannedTimePerPoint(subtask.getPlannedTimePerPoint());
+        response.setActualTimePerPoint(subtask.getActualTimePerPoint());
+        response.setEfficiencyVariancePercent(subtask.getEfficiencyVariancePercent());
+        response.setTimeVariancePercent(subtask.getTimeVariancePercent());
+
+        return response;
     }
 
     /**

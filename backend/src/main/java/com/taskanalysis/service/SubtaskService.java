@@ -21,6 +21,7 @@ public class SubtaskService {
     @Autowired
     private TimeEntryRepository timeEntryRepository;
 
+    @Transactional(readOnly = true)
     public SubtaskResponse getSubtaskById(Long userId, Long subtaskId) {
         Subtask subtask = subtaskRepository.findById(subtaskId)
                 .orElseThrow(() -> new RuntimeException("Subtask not found"));
@@ -29,6 +30,10 @@ public class SubtaskService {
             throw new RuntimeException("Access denied");
         }
 
+        // Initialize lazy collections for metrics calculation
+        subtask.getTask().getSubtasks().size(); // Force initialization of task's subtasks
+        subtask.getTimeEntries().size(); // Force initialization of subtask's time entries
+        
         return mapToResponse(subtask);
     }
 
@@ -70,6 +75,12 @@ public class SubtaskService {
         }
 
         Subtask updated = subtaskRepository.save(subtask);
+        
+        // Initialize lazy collections for metrics calculation
+        // This ensures the task's subtasks collection and subtask's time entries are loaded
+        updated.getTask().getSubtasks().size(); // Force initialization of task's subtasks
+        updated.getTimeEntries().size(); // Force initialization of subtask's time entries
+        
         return mapToResponse(updated);
     }
 
@@ -80,17 +91,27 @@ public class SubtaskService {
                 .mapToLong(TimeEntry::getDurationSeconds)
                 .sum();
 
-        return new SubtaskResponse(
-                subtask.getId(),
-                subtask.getTask().getId(),
-                subtask.getSubtaskNumber(),
-                subtask.getPlannedPoints(),
-                subtask.getActualPoints(),
-                subtask.getStatus(),
-                totalSeconds,
-                subtask.getCreatedAt(),
-                subtask.getUpdatedAt()
-        );
+        SubtaskResponse response = new SubtaskResponse();
+        response.setId(subtask.getId());
+        response.setTaskId(subtask.getTask().getId());
+        response.setSubtaskNumber(subtask.getSubtaskNumber());
+        response.setPlannedPoints(subtask.getPlannedPoints());
+        response.setActualPoints(subtask.getActualPoints());
+        response.setStatus(subtask.getStatus());
+        response.setTotalTimeSeconds(totalSeconds);
+        response.setCreatedAt(subtask.getCreatedAt());
+        response.setUpdatedAt(subtask.getUpdatedAt());
+
+        // Populate computed metrics from @Transient methods
+        response.setProportionalPlannedTimeMinutes(subtask.getProportionalPlannedTimeMinutes());
+        response.setPlannedEfficiencyScore(subtask.getPlannedEfficiencyScore());
+        response.setActualEfficiencyScore(subtask.getActualEfficiencyScore());
+        response.setPlannedTimePerPoint(subtask.getPlannedTimePerPoint());
+        response.setActualTimePerPoint(subtask.getActualTimePerPoint());
+        response.setEfficiencyVariancePercent(subtask.getEfficiencyVariancePercent());
+        response.setTimeVariancePercent(subtask.getTimeVariancePercent());
+
+        return response;
     }
 
 }

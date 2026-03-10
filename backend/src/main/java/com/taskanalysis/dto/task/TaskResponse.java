@@ -26,5 +26,14 @@ public class TaskResponse {
     private List<SubtaskResponse> subtasks;
     private Integer totalPlannedPoints;
     private Integer totalActualPoints;
+    private Integer plannedTotalTimeMinutes;
+    private Integer totalActualTimeSeconds;
+    
+    // Performance Metrics
+    private Double plannedEfficiencyScore;        // plannedPoints / plannedTimeHours
+    private Double actualEfficiencyScore;          // actualPoints / actualTimeHours
+    private Double plannedTimePerPoint;            // plannedTimeMinutes / plannedPoints
+    private Double actualTimePerPoint;             // actualTimeMinutes / actualPoints
+    private Double efficiencyVariancePercent;      // (actual - planned) / planned * 100
 
 }

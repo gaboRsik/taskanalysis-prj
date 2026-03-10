@@ -22,4 +22,13 @@ public class SubtaskResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    // ===== Computed Metrics =====
+    private Integer proportionalPlannedTimeMinutes;
+    private Double plannedEfficiencyScore;
+    private Double actualEfficiencyScore;
+    private Double plannedTimePerPoint;
+    private Double actualTimePerPoint;
+    private Double efficiencyVariancePercent;
+    private Double timeVariancePercent;
+
 }
