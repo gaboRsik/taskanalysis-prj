@@ -1,6 +1,8 @@
 package com.taskanalysis.service;
 
 import com.taskanalysis.dto.auth.AuthResponse;
+import com.taskanalysis.dto.auth.ChangePasswordRequest;
+import com.taskanalysis.dto.auth.ChangePasswordResponse;
 import com.taskanalysis.dto.auth.LoginRequest;
 import com.taskanalysis.dto.auth.RegisterRequest;
 import com.taskanalysis.entity.User;
@@ -128,6 +130,37 @@ public class AuthService {
                 );
             }
         }
+    }
+
+    @Transactional
+    public ChangePasswordResponse changePassword(String email, ChangePasswordRequest request) {
+        // Validate new password matches confirmation
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new BusinessException("New password and confirmation do not match");
+        }
+
+        // Get user
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+
+        // Verify current password
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            log.warn("Failed password change attempt for user: {} - Incorrect current password", email);
+            throw new BadCredentialsException("Current password is incorrect");
+        }
+
+        // Check if new password is same as current
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+            throw new BusinessException("New password must be different from current password");
+        }
+
+        // Update password
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        log.info("Password changed successfully for user: {}", email);
+
+        return new ChangePasswordResponse("Password changed successfully", true);
     }
 
 }

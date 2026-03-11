@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
-import { AuthResponse, LoginRequest, RegisterRequest, User } from '../models/auth.model';
+import { AuthResponse, LoginRequest, RegisterRequest, User, ChangePasswordRequest, ChangePasswordResponse } from '../models/auth.model';
 
 @Injectable({
   providedIn: 'root'
@@ -54,6 +54,10 @@ export class AuthService {
 
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
+  }
+
+  changePassword(request: ChangePasswordRequest): Observable<ChangePasswordResponse> {
+    return this.http.post<ChangePasswordResponse>(`${this.apiUrl}/change-password`, request);
   }
 
   private handleAuthSuccess(response: AuthResponse): void {

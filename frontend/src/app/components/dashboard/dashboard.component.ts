@@ -41,6 +41,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   showYAxisLabel = true;
   yAxisLabel = 'Time (seconds)';
   animations = true;
+  isChartCollapsed = true; // Chart starts collapsed to prioritize timer buttons
   colorScheme: any = {
     domain: ['#5AA454', '#A10A28', '#C7B42C', '#AAAAAA', '#7aa3e5', '#a27ea8']
   };

@@ -1,0 +1,121 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0"><i class="bi bi-person-circle"></i> User Profile</h4>
+        </div>
+        <div class="card-body">
+          <!-- User Info Section -->
+          <div class="mb-4">
+            <h5 class="border-bottom pb-2">Account Information</h5>
+            <div class="row mb-2">
+              <div class="col-4 text-muted">Name:</div>
+              <div class="col-8"><strong>{{ currentUser?.name }}</strong></div>
+            </div>
+            <div class="row">
+              <div class="col-4 text-muted">Email:</div>
+              <div class="col-8"><strong>{{ currentUser?.email }}</strong></div>
+            </div>
+          </div>
+
+          <!-- Change Password Section -->
+          <div>
+            <h5 class="border-bottom pb-2"><i class="bi bi-key"></i> Change Password</h5>
+            
+            <!-- Success Message -->
+            <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+              <i class="bi bi-check-circle"></i> {{ successMessage }}
+              <button type="button" class="btn-close" (click)="successMessage = ''" aria-label="Close"></button>
+            </div>
+
+            <!-- Error Message -->
+            <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+              <i class="bi bi-exclamation-triangle"></i> {{ errorMessage }}
+              <button type="button" class="btn-close" (click)="errorMessage = ''" aria-label="Close"></button>
+            </div>
+
+            <form (ngSubmit)="onChangePassword()" #passwordForm="ngForm">
+              <!-- Current Password -->
+              <div class="mb-3">
+                <label for="currentPassword" class="form-label">Current Password</label>
+                <input
+                  type="password"
+                  class="form-control"
+                  id="currentPassword"
+                  name="currentPassword"
+                  [(ngModel)]="currentPassword"
+                  required
+                  placeholder="Enter current password"
+                  [disabled]="isLoading"
+                >
+              </div>
+
+              <!-- New Password -->
+              <div class="mb-3">
+                <label for="newPassword" class="form-label">New Password</label>
+                <input
+                  type="password"
+                  class="form-control"
+                  id="newPassword"
+                  name="newPassword"
+                  [(ngModel)]="newPassword"
+                  required
+                  minlength="8"
+                  placeholder="Enter new password (min 8 characters)"
+                  [disabled]="isLoading"
+                >
+              </div>
+
+              <!-- Confirm Password -->
+              <div class="mb-3">
+                <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                <input
+                  type="password"
+                  class="form-control"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  [(ngModel)]="confirmPassword"
+                  required
+                  placeholder="Re-enter new password"
+                  [disabled]="isLoading"
+                >
+              </div>
+
+              <!-- Submit Button -->
+              <div class="d-grid gap-2">
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  [disabled]="!passwordForm.form.valid || isLoading"
+                >
+                  <span *ngIf="!isLoading">
+                    <i class="bi bi-shield-check"></i> Change Password
+                  </span>
+                  <span *ngIf="isLoading">
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Changing...
+                  </span>
+                </button>
+              </div>
+            </form>
+
+            <!-- Password Requirements -->
+            <div class="mt-3">
+              <small class="text-muted">
+                <i class="bi bi-info-circle"></i> Password must be at least 8 characters and contain uppercase, lowercase, digit, and special character
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Back Button -->
+      <div class="mt-3 text-center">
+        <a routerLink="/dashboard" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

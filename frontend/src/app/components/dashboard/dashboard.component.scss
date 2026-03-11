@@ -5,6 +5,20 @@
 
 .card-header {
   font-weight: 500;
+
+  &[style*="cursor: pointer"] {
+    user-select: none;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      opacity: 0.9;
+    }
+
+    i.bi-chevron-up,
+    i.bi-chevron-down {
+      transition: transform 0.3s ease;
+    }
+  }
 }
 
 .list-group-item.active {
