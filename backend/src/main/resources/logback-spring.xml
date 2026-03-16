@@ -79,10 +79,9 @@
         </root>
     </springProfile>
     
+    <!-- Production: Console-only for Docker (use 'docker logs' to view) -->
     <springProfile name="prod">
         <root level="INFO">
-            <appender-ref ref="FILE"/>
-            <appender-ref ref="ERROR_FILE"/>
             <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>
