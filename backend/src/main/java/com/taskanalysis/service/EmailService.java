@@ -87,4 +87,60 @@ public class EmailService {
                 Task Analysis
                 """, userName, taskName, categoryName, currentDate);
     }
+
+    /**
+     * Send password reset email to user
+     *
+     * @param toEmail     Recipient email address
+     * @param userName    User's name
+     * @param resetToken  Password reset token
+     * @param frontendUrl Frontend application URL
+     * @throws MessagingException if email sending fails
+     */
+    public void sendPasswordResetEmail(
+            String toEmail,
+            String userName,
+            String resetToken,
+            String frontendUrl
+    ) throws MessagingException {
+        
+        log.info("Sending password reset email to: {}", toEmail);
+        
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        helper.setFrom(fromEmail);
+        helper.setTo(toEmail);
+        helper.setSubject("Task Analysis - Jelszó visszaállítás");
+
+        String resetLink = frontendUrl + "/reset-password/" + resetToken;
+        String emailBody = buildPasswordResetEmailBody(userName, resetLink);
+        helper.setText(emailBody, false);
+
+        mailSender.send(message);
+        log.info("Password reset email sent successfully to: {}", toEmail);
+    }
+
+    /**
+     * Build password reset email body text
+     */
+    private String buildPasswordResetEmailBody(String userName, String resetLink) {
+        return String.format("""
+                Szia %s!
+                
+                Jelszó visszaállítási kérelmet kaptunk a Task Analysis fiókodhoz.
+                
+                Ha te kezdeményezted ezt a kérelmet, kattints az alábbi linkre az új jelszó beállításához:
+                
+                %s
+                
+                Ez a link 1 órán belül lejár.
+                
+                Ha nem te kérted a jelszó visszaállítást, kérjük figyelmen kívül hagyni ezt az emailt.
+                A jelszavad nem változik, amíg nem kattintasz a fenti linkre és nem állítasz be új jelszót.
+                
+                Üdv,
+                Task Analysis
+                """, userName, resetLink);
+    }
 }

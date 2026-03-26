@@ -3,8 +3,11 @@ package com.taskanalysis.service;
 import com.taskanalysis.dto.auth.AuthResponse;
 import com.taskanalysis.dto.auth.ChangePasswordRequest;
 import com.taskanalysis.dto.auth.ChangePasswordResponse;
+import com.taskanalysis.dto.auth.ForgotPasswordRequest;
 import com.taskanalysis.dto.auth.LoginRequest;
+import com.taskanalysis.dto.auth.MessageResponse;
 import com.taskanalysis.dto.auth.RegisterRequest;
+import com.taskanalysis.dto.auth.ResetPasswordRequest;
 import com.taskanalysis.entity.User;
 import com.taskanalysis.exception.AccountLockedException;
 import com.taskanalysis.exception.BusinessException;
@@ -14,12 +17,16 @@ import com.taskanalysis.security.JwtTokenProvider;
 import com.taskanalysis.security.LoginAttemptService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -39,6 +46,12 @@ public class AuthService {
 
     @Autowired
     private LoginAttemptService loginAttemptService;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -161,6 +174,82 @@ public class AuthService {
         log.info("Password changed successfully for user: {}", email);
 
         return new ChangePasswordResponse("Password changed successfully", true);
+    }
+
+    @Transactional
+    public MessageResponse forgotPassword(ForgotPasswordRequest request) {
+        String email = request.getEmail();
+        
+        // Find user by email
+        User user = userRepository.findByEmail(email)
+                .orElse(null);
+        
+        // For security reasons, always return success message even if user doesn't exist
+        // This prevents email enumeration attacks
+        if (user == null) {
+            log.warn("Password reset requested for non-existent email: {}", email);
+            return new MessageResponse("If the email exists, a password reset link has been sent.");
+        }
+
+        // Generate reset token (UUID)
+        String resetToken = UUID.randomUUID().toString();
+        
+        // Set token expiry (1 hour from now)
+        LocalDateTime expiryTime = LocalDateTime.now().plusHours(1);
+        
+        // Save token to user
+        user.setResetToken(resetToken);
+        user.setResetTokenExpiry(expiryTime);
+        userRepository.save(user);
+
+        // Send password reset email
+        try {
+            emailService.sendPasswordResetEmail(email, user.getName(), resetToken, frontendUrl);
+            log.info("Password reset email sent to: {}", email);
+        } catch (Exception e) {
+            log.error("Failed to send password reset email to: {}", email, e);
+            // Don't reveal email sending failure to user for security
+        }
+
+        return new MessageResponse("If the email exists, a password reset link has been sent.");
+    }
+
+    @Transactional
+    public MessageResponse resetPassword(ResetPasswordRequest request) {
+        String token = request.getToken();
+        
+        // Validate new password matches confirmation
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new BusinessException("New password and confirmation do not match");
+        }
+
+        // Find user by reset token
+        User user = userRepository.findByResetToken(token)
+                .orElseThrow(() -> new BusinessException("Invalid or expired reset token"));
+
+        // Check if token is expired
+        if (user.getResetTokenExpiry() == null || user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+            // Clear expired token
+            user.setResetToken(null);
+            user.setResetTokenExpiry(null);
+            userRepository.save(user);
+            
+            log.warn("Attempt to use expired reset token for user: {}", user.getEmail());
+            throw new BusinessException("Reset token has expired. Please request a new password reset.");
+        }
+
+        // Update password
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        
+        // Clear reset token
+        user.setResetToken(null);
+        user.setResetTokenExpiry(null);
+        
+        userRepository.save(user);
+
+        log.info("Password reset successfully for user: {}", user.getEmail());
+
+        return new MessageResponse("Password has been reset successfully. You can now login with your new password.");
     }
 
 }

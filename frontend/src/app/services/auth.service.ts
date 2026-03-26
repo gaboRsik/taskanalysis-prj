@@ -60,6 +60,14 @@ export class AuthService {
     return this.http.post<ChangePasswordResponse>(`${this.apiUrl}/change-password`, request);
   }
 
+  forgotPassword(request: { email: string }): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/forgot-password`, request);
+  }
+
+  resetPassword(request: { token: string; newPassword: string; confirmPassword: string }): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/reset-password`, request);
+  }
+
   private handleAuthSuccess(response: AuthResponse): void {
     localStorage.setItem('accessToken', response.accessToken);
     localStorage.setItem('refreshToken', response.refreshToken);

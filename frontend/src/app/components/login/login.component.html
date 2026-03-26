@@ -1,6 +1,6 @@
 <div class="container">
   <div class="row justify-content-center mt-5">
-    <div class="col-md-6 col-lg-4">
+    <div class="col-12 col-md-11 col-lg-9 col-xl-7">
       <div class="card shadow">
         <div class="card-body p-4">
           <h2 class="text-center mb-4">Task Analysis</h2>
@@ -51,6 +51,12 @@
               <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
               {{ isLoading ? 'Logging in...' : 'Login' }}
             </button>
+
+            <div class="text-center mb-3">
+              <a routerLink="/forgot-password" class="text-decoration-none">
+                Elfelejtetted a jelszavad?
+              </a>
+            </div>
 
             <div class="text-center">
               <p class="mb-0">
