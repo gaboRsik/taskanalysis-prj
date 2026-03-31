@@ -36,6 +36,10 @@ export class NavbarComponent implements OnInit {
     return this.authService.isAuthenticated();
   }
 
+  isAdmin(): boolean {
+    return this.currentUser?.role === 'ADMIN';
+  }
+
   toggleTheme(): void {
     this.themeService.toggleTheme();
   }

@@ -47,6 +47,10 @@ public class User {
     @Column(name = "reset_token_expiry")
     private LocalDateTime resetTokenExpiry;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role = Role.USER;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Category> categories = new ArrayList<>();
 

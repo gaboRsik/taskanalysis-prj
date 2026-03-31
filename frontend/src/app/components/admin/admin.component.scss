@@ -1,0 +1,41 @@
+.container {
+  max-width: 1200px;
+}
+
+h2 {
+  color: var(--bs-dark);
+  font-weight: 600;
+}
+
+.card {
+  border-radius: 10px;
+  border: none;
+}
+
+.table {
+  th {
+    font-weight: 600;
+    color: var(--bs-dark);
+    border-bottom: 2px solid var(--bs-gray-300);
+  }
+
+  td {
+    vertical-align: middle;
+  }
+}
+
+.badge {
+  font-size: 0.85rem;
+  padding: 0.5rem 0.75rem;
+  font-weight: 500;
+}
+
+.btn-group {
+  .btn {
+    font-size: 0.875rem;
+  }
+}
+
+.alert {
+  border-radius: 8px;
+}

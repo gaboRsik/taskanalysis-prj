@@ -8,7 +8,9 @@ import { TasksComponent } from './components/tasks/tasks.component';
 import { CategoriesComponent } from './components/categories/categories.component';
 import { TemplatesComponent } from './components/templates/templates.component';
 import { ProfileComponent } from './components/profile/profile';
+import { AdminComponent } from './components/admin/admin.component';
 import { authGuard } from './guards/auth.guard';
+import { AdminGuard } from './guards/admin.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
@@ -21,5 +23,6 @@ export const routes: Routes = [
   { path: 'categories', component: CategoriesComponent, canActivate: [authGuard] },
   { path: 'templates', component: TemplatesComponent, canActivate: [authGuard] },
   { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
+  { path: 'admin', component: AdminComponent, canActivate: [authGuard, AdminGuard] },
   { path: '**', redirectTo: '/dashboard' }
 ];

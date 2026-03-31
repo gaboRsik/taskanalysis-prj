@@ -1,7 +1,13 @@
+export enum Role {
+  USER = 'USER',
+  ADMIN = 'ADMIN'
+}
+
 export interface User {
   id: number;
   email: string;
   name: string;
+  role: Role;
 }
 
 export interface LoginRequest {
@@ -22,6 +28,7 @@ export interface AuthResponse {
   userId: number;
   email: string;
   name: string;
+  role: Role;
 }
 
 export interface ChangePasswordRequest {

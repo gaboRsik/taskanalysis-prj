@@ -79,7 +79,8 @@ public class AuthService {
                 refreshToken,
                 savedUser.getId(),
                 savedUser.getEmail(),
-                savedUser.getName()
+                savedUser.getName(),
+                savedUser.getRole()
         );
     }
 
@@ -123,7 +124,8 @@ public class AuthService {
                     refreshToken,
                     user.getId(),
                     user.getEmail(),
-                    user.getName()
+                    user.getName(),
+                    user.getRole()
             );
         } catch (BadCredentialsException ex) {
             // Record failed attempt
