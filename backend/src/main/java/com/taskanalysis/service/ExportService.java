@@ -25,6 +25,7 @@ public class ExportService {
      * @return Excel file as byte array
      * @throws IOException if file generation fails
      */
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public byte[] generateExcelExport(Task task) throws IOException {
         log.info("Generating Excel export for task: {}", task.getName());
 

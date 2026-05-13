@@ -36,6 +36,13 @@ public class TimerController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/stop/{subtaskId}")
+    public ResponseEntity<TimerResponse> stopTimerForSubtask(@PathVariable Long subtaskId) {
+        Long userId = getCurrentUserId();
+        TimerResponse response = timerService.stopTimer(userId, subtaskId);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/active")
     public ResponseEntity<TimerResponse> getActiveTimer() {
         Long userId = getCurrentUserId();

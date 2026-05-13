@@ -85,6 +85,7 @@ public class TimerService {
         return mapToResponse(saved, subtask);
     }
 
+    @Transactional(readOnly = true)
     public TimerResponse getActiveTimer(Long userId, Long taskId) {
         // Find any running timer for this task
         List<Subtask> subtasks = subtaskRepository.findByTaskId(taskId);
@@ -123,6 +124,7 @@ public class TimerService {
         throw new RuntimeException("No running timer found");
     }
 
+    @Transactional(readOnly = true)
     public TimerResponse getActiveTimerForUser(Long userId) {
         // Find any running timer for this user
         List<TimeEntry> runningEntries = timeEntryRepository.findByEndTimeIsNull();
