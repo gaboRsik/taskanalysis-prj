@@ -6,9 +6,9 @@ POST http://localhost:8080/api/auth/register
 Content-Type: application/json
 
 {
-  "name": "Test User",
-  "email": "test@example.com",
-  "password": "test123"
+  "name": "Test User2",
+  "email": "test2@example.com",
+  "password": "Ttest123<"
 }
 
 ### 2. Login with the user
@@ -16,43 +16,53 @@ POST http://localhost:8080/api/auth/login
 Content-Type: application/json
 
 {
-  "email": "test@example.com",
-  "password": "test123"
+  "email": "test2@example.com",
+  "password": "Ttest123<"
 }
 
 ### 3. Create a category (replace YOUR_ACCESS_TOKEN with token from login)
 POST http://localhost:8080/api/categories
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiaWF0IjoxNzY5ODkwNjIyLCJleHAiOjE3Njk4OTQyMjJ9.m9aOdJEo3brZkga-k4D7F0EeQINd-k4dZ183hEW85nrxeI3gF_InVA512dtcujfC59uh2eu6DJunymhg-Csfcg
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MkBleGFtcGxlLmNvbSIsImlhdCI6MTc3ODcwNTgzMywiZXhwIjoxNzc4NzA5NDMzfQ.oiZrlY23xRdFBu52rlHXJi0NMPJPQDIU3LfmYKy7uWYSWQuLvf9CQiu4soDW65eZoFePL9hJ-8ZZE1W4sc413Q
 
 {
-  "name": "Work"
+  "name": "Work2"
 }
 
 ### 4. Get all categories
 GET http://localhost:8080/api/categories
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiaWF0IjoxNzY5ODkwNjIyLCJleHAiOjE3Njk4OTQyMjJ9.m9aOdJEo3brZkga-k4D7F0EeQINd-k4dZ183hEW85nrxeI3gF_InVA512dtcujfC59uh2eu6DJunymhg-Csfcg
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MkBleGFtcGxlLmNvbSIsImlhdCI6MTc3ODcwNTgzMywiZXhwIjoxNzc4NzA5NDMzfQ.oiZrlY23xRdFBu52rlHXJi0NMPJPQDIU3LfmYKy7uWYSWQuLvf9CQiu4soDW65eZoFePL9hJ-8ZZE1W4sc413Q
 
 ### 5. Create a task
 POST http://localhost:8080/api/tasks
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiaWF0IjoxNzY5ODkwNjIyLCJleHAiOjE3Njk4OTQyMjJ9.m9aOdJEo3brZkga-k4D7F0EeQINd-k4dZ183hEW85nrxeI3gF_InVA512dtcujfC59uh2eu6DJunymhg-Csfcg
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MkBleGFtcGxlLmNvbSIsImlhdCI6MTc3ODcwNTgzMywiZXhwIjoxNzc4NzA5NDMzfQ.oiZrlY23xRdFBu52rlHXJi0NMPJPQDIU3LfmYKy7uWYSWQuLvf9CQiu4soDW65eZoFePL9hJ-8ZZE1W4sc413Q
 
 {
-  "name": "Test Task",
-  "description": "This is a test task",
-  "categoryId": 1,
-  "subtaskCount": 3
+  "name": "Test Task2",
+  "description": "This is a test task2",
+  "categoryId": 14,
+  "subtaskCount": 2
 }
 
 ### 6. Get all tasks
 GET http://localhost:8080/api/tasks
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiaWF0IjoxNzY5ODkwNjIyLCJleHAiOjE3Njk4OTQyMjJ9.m9aOdJEo3brZkga-k4D7F0EeQINd-k4dZ183hEW85nrxeI3gF_InVA512dtcujfC59uh2eu6DJunymhg-Csfcg
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MkBleGFtcGxlLmNvbSIsImlhdCI6MTc3ODcwNTgzMywiZXhwIjoxNzc4NzA5NDMzfQ.oiZrlY23xRdFBu52rlHXJi0NMPJPQDIU3LfmYKy7uWYSWQuLvf9CQiu4soDW65eZoFePL9hJ-8ZZE1W4sc413Q
 
-### 7. Start timer for subtask 1
-POST http://localhost:8080/api/timer/start/1
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiaWF0IjoxNzY5ODkwNjIyLCJleHAiOjE3Njk4OTQyMjJ9.m9aOdJEo3brZkga-k4D7F0EeQINd-k4dZ183hEW85nrxeI3gF_InVA512dtcujfC59uh2eu6DJunymhg-Csfcg
+### 7. Start timer for subtask 157
+POST http://localhost:8080/api/timer/start/157
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MkBleGFtcGxlLmNvbSIsImlhdCI6MTc3ODcwNTgzMywiZXhwIjoxNzc4NzA5NDMzfQ.oiZrlY23xRdFBu52rlHXJi0NMPJPQDIU3LfmYKy7uWYSWQuLvf9CQiu4soDW65eZoFePL9hJ-8ZZE1W4sc413Q
 
-### 8. Stop timer for subtask 1
-POST http://localhost:8080/api/timer/stop/1
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiaWF0IjoxNzY5ODkwNjIyLCJleHAiOjE3Njk4OTQyMjJ9.m9aOdJEo3brZkga-k4D7F0EeQINd-k4dZ183hEW85nrxeI3gF_InVA512dtcujfC59uh2eu6DJunymhg-Csfcg
+### 8. Stop timer for subtask 157
+POST http://localhost:8080/api/timer/stop/157
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MkBleGFtcGxlLmNvbSIsImlhdCI6MTc3ODcwNTgzMywiZXhwIjoxNzc4NzA5NDMzfQ.oiZrlY23xRdFBu52rlHXJi0NMPJPQDIU3LfmYKy7uWYSWQuLvf9CQiu4soDW65eZoFePL9hJ-8ZZE1W4sc413Q
+
+### 9. Export task to Excel (replace TASK_ID with actual task ID)
+POST http://localhost:8080/api/export/task/36
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MkBleGFtcGxlLmNvbSIsImlhdCI6MTc3ODc4MTQ1NywiZXhwIjoxNzc4Nzg1MDU3fQ.hUeWMYlHgUw8g7SV8ki9shYeAjqmuRikh_mlYAB-SjoWdRmEimdxN8nbe_c3SKFHtFIZhTq4UqdGmUkbBlC9ow
+
+{
+  "format": "XLSX",
+  "delivery": "DOWNLOAD"
+}

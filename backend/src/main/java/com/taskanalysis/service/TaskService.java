@@ -113,6 +113,11 @@ public class TaskService {
         task.getSubtasks().size();
         task.getSubtasks().forEach(subtask -> subtask.getTimeEntries().size());
         
+        // Ensure category is loaded
+        if (task.getCategory() != null) {
+            task.getCategory().getName();
+        }
+        
         return task;
     }
 
