@@ -118,6 +118,9 @@ public class TaskService {
             task.getCategory().getName();
         }
         
+        // Ensure user is loaded
+        task.getUser().getName();
+        
         return task;
     }
 
