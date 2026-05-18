@@ -47,7 +47,7 @@ Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MkBleGFtcGxlLmNvbSIsI
 
 ### 6. Get all tasks
 GET http://localhost:8080/api/tasks
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MkBleGFtcGxlLmNvbSIsImlhdCI6MTc3ODcwNTgzMywiZXhwIjoxNzc4NzA5NDMzfQ.oiZrlY23xRdFBu52rlHXJi0NMPJPQDIU3LfmYKy7uWYSWQuLvf9CQiu4soDW65eZoFePL9hJ-8ZZE1W4sc413Q
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MkBleGFtcGxlLmNvbSIsImlhdCI6MTc3OTA5MDQ2MSwiZXhwIjoxNzc5MDk0MDYxfQ.Nhus_XQ2Ch3_-HshhVvCo2R1o_RDkPBwiuARXGh5ukpP6krHPsy6DMj0yGR16jWezGtNwn8SZ69LGKMy7BnQQw
 
 ### 7. Start timer for subtask 157
 POST http://localhost:8080/api/timer/start/157
@@ -60,9 +60,33 @@ Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MkBleGFtcGxlLmNvbSIsI
 ### 9. Export task to Excel (replace TASK_ID with actual task ID)
 POST http://localhost:8080/api/export/task/36
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MkBleGFtcGxlLmNvbSIsImlhdCI6MTc3ODc4MTQ1NywiZXhwIjoxNzc4Nzg1MDU3fQ.hUeWMYlHgUw8g7SV8ki9shYeAjqmuRikh_mlYAB-SjoWdRmEimdxN8nbe_c3SKFHtFIZhTq4UqdGmUkbBlC9ow
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MkBleGFtcGxlLmNvbSIsImlhdCI6MTc3ODc4NTM4OSwiZXhwIjoxNzc4Nzg4OTg5fQ.QRAhNz5-MJaJf0XiF_XQk7sHBzv2Q59q8owf4KQqnMqNHHQKpC2UkWSf8UIkKxTEvzY2RGS9sGX_ProuTkUcxA
 
 {
   "format": "XLSX",
   "delivery": "DOWNLOAD"
 }
+
+### 10. AI Chatbot - Analyze Task Performance
+POST http://localhost:8080/api/chatbot/analyze/36
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MkBleGFtcGxlLmNvbSIsImlhdCI6MTc3OTA5MjUzOCwiZXhwIjoxNzc5MDk2MTM4fQ.03TeBI2UsDvyQXRB9rX0Z2FBOWqQzCu-VrSWYtvMCXvMO49FcBVSXlwEkDwUtHFJXmV1eC7s8pQywnqsNCD0qQ
+Content-Type: application/json
+
+### 11. Change Task Status to COMPLETED
+PATCH http://localhost:8080/api/tasks/36/status
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MkBleGFtcGxlLmNvbSIsImlhdCI6MTc3OTEwMzYwNiwiZXhwIjoxNzc5MTA3MjA2fQ.uoT1d0zH-dv0I8Zw6Z8Jt4dCw0HGYkO5faTq6xVgo_AM_T0T5Itrik62qpSDJHpvQzAUYhwrIkL1s5ls7y3qQw
+
+{
+  "status": "COMPLETED"
+}
+
+### 12. Reopen Task (Change Status to IN_PROGRESS)
+PATCH http://localhost:8080/api/tasks/36/status
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MkBleGFtcGxlLmNvbSIsImlhdCI6MTc3OTEwMzYwNiwiZXhwIjoxNzc5MTA3MjA2fQ.uoT1d0zH-dv0I8Zw6Z8Jt4dCw0HGYkO5faTq6xVgo_AM_T0T5Itrik62qpSDJHpvQzAUYhwrIkL1s5ls7y3qQw
+
+{
+  "status": "IN_PROGRESS"
+}
+

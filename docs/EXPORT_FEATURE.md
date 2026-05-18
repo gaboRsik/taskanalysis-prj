@@ -15,6 +15,21 @@ Az export feature lehetővé teszi a felhasználók számára, hogy a feladat ad
 
 ---
 
+## ✅ Feature Status (2026-05-14)
+
+| Feature | Status | Environment |
+|---------|--------|-------------|
+| 📥 Download Export (XLSX) | ✅ **Működik** | Lokál + Production |
+| 📧 Email Export (XLSX) | ✅ **Működik** | Lokál + Production |
+| 📄 PDF Export | ⏳ Tervezett | - |
+| 🐛 LazyInitializationException | ✅ **Javítva** | 2026-05-14 |
+
+**Tesztelt környezetek:**
+- ✅ **Lokál fejlesztés** (IntelliJ + localhost:4200)
+- ✅ **AWS EC2 Production** (https://tasks.gaborsiknet.hu)
+
+---
+
 ## Backend Setup
 
 ### 1. Dependencies (már hozzáadva)
@@ -119,6 +134,51 @@ spring.mail.properties.mail.smtp.starttls.enable=true
 - **SendGrid** - https://sendgrid.com/
 - **AWS SES** - https://aws.amazon.com/ses/
 - **Mailgun** - https://www.mailgun.com/
+
+---
+
+### Option 4: AWS Production (.env file) ☁️
+
+**Használat:** AWS EC2 instance-on Docker containerben
+
+**Lépések:**
+
+1. **SSH kapcsolat AWS szerverrel:**
+   ```bash
+   ssh -i ~/.ssh/taskanalysis-key.pem ubuntu@3.64.207.108
+   ```
+
+2. **Navigálj a projekthez:**
+   ```bash
+   cd ~/taskanalysis-prj
+   ```
+
+3. **Szerkeszd a .env fájlt:**
+   ```bash
+   nano .env
+   ```
+
+4. **Add hozzá az email konfigurációt:**
+   ```bash
+   # Email Configuration
+   MAIL_HOST=smtp.gmail.com
+   MAIL_PORT=587
+   MAIL_USERNAME=your-email@gmail.com
+   MAIL_PASSWORD=your-16-char-app-password
+   MAIL_FROM=Task Analysis <noreply@taskanalysis.com>
+   ```
+
+5. **Mentés:** `Ctrl+O` → `Enter` → `Ctrl+X`
+
+6. **Backend újraindítása:**
+   ```bash
+   docker-compose -f docker-compose.prod.yml restart backend
+   docker logs taskanalysis-backend-prod --tail 30
+   ```
+
+Várj, amíg látod: `Started TaskAnalysisApplication in XX.XXX seconds`
+
+✅ **Production email funkció most már aktív!**
 
 ---
 
@@ -293,6 +353,59 @@ curl -X POST http://localhost:8080/api/export/task/1 \
 
 ## Troubleshooting
 
+### LazyInitializationException - "could not initialize proxy"
+
+**Hiba példa:**
+```
+org.hibernate.LazyInitializationException: could not initialize proxy [com.taskanalysis.entity.User#2] - no Session
+org.hibernate.LazyInitializationException: could not initialize proxy [com.taskanalysis.entity.Category#5] - no Session
+```
+
+**Ok:** A Task entity lazy-loaded kapcsolatai (User, Category, Subtasks, TimeEntries) nincsenek betöltve a Hibernate session lezárása előtt.
+
+**Megoldás:** ✅ **Már javítva! (2026-05-14)**
+
+A `TaskService.getTaskEntityById()` metódus most már kikényszeríti az összes szükséges kapcsolat betöltését:
+
+```java
+@Transactional(readOnly = true)
+public Task getTaskEntityById(Long taskId, Long userId) {
+    Task task = taskRepository.findById(taskId)
+            .orElseThrow(() -> new RuntimeException("Task not found"));
+    
+    if (!task.getUser().getId().equals(userId)) {
+        throw new RuntimeException("Access denied");
+    }
+    
+    // Force load all relationships before returning
+    task.getSubtasks().size();  // Load subtasks collection
+    task.getSubtasks().forEach(subtask -> 
+        subtask.getTimeEntries().size()  // Load time entries for each subtask
+    );
+    
+    // Force load category (nullable)
+    if (task.getCategory() != null) {
+        task.getCategory().getName();
+    }
+    
+    // Force load user
+    task.getUser().getName();
+    
+    return task;
+}
+```
+
+**Miért működik ez?**
+- `@Transactional` annotáció biztosítja, hogy a metódus alatt aktív legyen a Hibernate session
+- `.size()`, `.getName()` hívások kikényszerítik a lazy-loaded entitások betöltését
+- A Task objektum ezután biztonságosan továbbadható az ExportService-nek
+
+**Ha mégis hibát kapsz:**
+1. Frissítsd a kódot: `git pull origin main`
+2. Restart backend lokálisan vagy AWS-en
+
+---
+
 ### Email nem érkezik meg
 
 1. **Ellenőrizd az environment variables-öket:**
@@ -321,10 +434,28 @@ curl -X POST http://localhost:8080/api/export/task/1 \
 ## Security Notes
 
 ⚠️ **Production környezetben:**
+- **Ne commitáld** a `.env` fájlt a GitHubra (már `.gitignore`-ban van)
 - Használj titkosított environment variables-öket
-- Ne commitálj valódi email credentials-öket a kódba
-- Használj dedicated SMTP service-t (SendGrid, AWS SES)
-- Rate limiting az export endpoint-ra
+- Ne írd bele a valódi email credentials-öket a kódba
+- Használj dedicated SMTP service-t (SendGrid, AWS SES) személyes Gmail helyett
+- Állíts be rate limiting-et az export endpoint-ra
+
+✅ **AWS Production Best Practices:**
+1. **.env fájl használata** - Credentials elkülönítve a kódtól
+2. **Docker environment variables** - docker-compose.prod.yml átadja őket
+3. **Gmail App Password** - Fejlesztéshez megfelelő, production-ben jobb egy dedikált SMTP service
+4. **HTTPS** - tasks.gaborsiknet.hu már HTTPS-en fut
+5. **JWT Authentication** - Minden export endpoint védett
+
+**Példa .env fájl struktúra AWS-en:**
+```bash
+# ~/taskanalysis-prj/.env
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=16-char-app-password
+MAIL_FROM=Task Analysis <noreply@taskanalysis.com>
+```
 
 ---
 

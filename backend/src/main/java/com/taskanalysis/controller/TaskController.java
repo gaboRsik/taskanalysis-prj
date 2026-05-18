@@ -1,12 +1,15 @@
 package com.taskanalysis.controller;
 
 import com.taskanalysis.dto.task.TaskRequest;
+import com.taskanalysis.dto.task.TaskStatusRequest;
 import com.taskanalysis.dto.task.TaskUpdateRequest;
 import com.taskanalysis.dto.task.TaskResponse;
+import com.taskanalysis.entity.Task;
 import com.taskanalysis.entity.User;
 import com.taskanalysis.repository.UserRepository;
 import com.taskanalysis.security.CurrentUser;
 import com.taskanalysis.service.TaskService;
+import com.taskanalysis.service.TaskStatusService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +23,9 @@ public class TaskController {
 
     @Autowired
     private TaskService taskService;
+
+    @Autowired
+    private TaskStatusService taskStatusService;
 
     @Autowired
     private UserRepository userRepository;
@@ -62,6 +68,20 @@ public class TaskController {
         Long userId = getCurrentUserId();
         taskService.deleteTask(userId, id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<TaskResponse> changeTaskStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody TaskStatusRequest request) {
+        Long userId = getCurrentUserId();
+        
+        // Change status with validation
+        Task updatedTask = taskStatusService.changeTaskStatus(id, userId, request.getStatus());
+        
+        // Convert to response (reload with full data)
+        TaskResponse response = taskService.getTaskById(userId, id);
+        return ResponseEntity.ok(response);
     }
 
     private Long getCurrentUserId() {

@@ -135,6 +135,51 @@ Most újra kell indítanod a backendet, hogy érvénybe lépjenek a változások
 
 ---
 
+## ☁️ 3.5. AWS Production Környezet Beállítása
+
+Ha AWS-re szeretnél deployolni production környezetbe, a konfigurációt a `.env` fájlban kell megadni.
+
+### **3.5.1 SSH kapcsolat AWS szerverrel**
+
+```powershell
+ssh -i C:\Users\siklo\.ssh\taskanalysis-key.pem ubuntu@3.64.207.108
+```
+
+### **3.5.2 .env fájl létrehozása/szerkesztése**
+
+```bash
+cd ~/taskanalysis-prj
+nano .env
+```
+
+### **3.5.3 Email konfiguráció hozzáadása**
+
+Add hozzá ezeket a sorokat a `.env` fájlhoz:
+
+```bash
+# Email Configuration
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=a-te-gmail-cimed@gmail.com
+MAIL_PASSWORD=abcdefghijklmnop
+MAIL_FROM=Task Analysis <noreply@taskanalysis.com>
+```
+
+**Mentés:**
+- `Ctrl + O` → `Enter` (Save)
+- `Ctrl + X` (Exit)
+
+### **3.5.4 Backend újraindítása**
+
+```bash
+docker-compose -f docker-compose.prod.yml restart backend
+docker logs taskanalysis-backend-prod --tail 30
+```
+
+Várj, amíg látod: `Started TaskAnalysisApplication in XX.XXX seconds`
+
+---
+
 ## 🧪 4. Email Funkció Tesztelése
 
 Most teszteljük, hogy működik-e!
@@ -256,6 +301,57 @@ Export email sent successfully to: siklo.gabor@gmail.com
 
 **Megoldás 3 - Várj 1-2 percet:**
 - Néha a Gmail késlelteti az alkalmazásokból küldött emaileket
+
+---
+
+### 🔴 **Hiba: "LazyInitializationException - could not initialize proxy"**
+
+**Teljes hibaüzenet példa:**
+```
+org.hibernate.LazyInitializationException: could not initialize proxy [com.taskanalysis.entity.User#2] - no Session
+org.hibernate.LazyInitializationException: could not initialize proxy [com.taskanalysis.entity.Category#5] - no Session
+```
+
+**Ok:** JPA lazy loading - a Task entity kapcsolatai (User, Category) nincsenek betöltve a Hibernate session lezárása előtt.
+
+**Megoldás:** ✅ **Már javítva! (2026-05-14)**
+
+A `TaskService.getTaskEntityById()` metódus most már kikényszeríti a kapcsolatok betöltését:
+
+```java
+@Transactional(readOnly = true)
+public Task getTaskEntityById(Long taskId, Long userId) {
+    Task task = taskRepository.findById(taskId)
+            .orElseThrow(() -> new RuntimeException("Task not found"));
+    
+    // Force load relationships
+    task.getSubtasks().size();
+    task.getSubtasks().forEach(subtask -> subtask.getTimeEntries().size());
+    
+    // Force load category
+    if (task.getCategory() != null) {
+        task.getCategory().getName();
+    }
+    
+    // Force load user
+    task.getUser().getName();
+    
+    return task;
+}
+```
+
+**Ha még mindig ezt a hibát kapod:**
+1. Ellenőrizd, hogy a legfrissebb kódot használod:
+   ```bash
+   git pull origin main
+   ```
+2. Indítsd újra a backend-et IntelliJ-ben
+3. AWS production-ben:
+   ```bash
+   cd ~/taskanalysis-prj
+   git pull
+   docker-compose -f docker-compose.prod.yml restart backend
+   ```
 
 ---
 

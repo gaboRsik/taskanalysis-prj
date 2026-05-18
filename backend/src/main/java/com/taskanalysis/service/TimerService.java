@@ -33,8 +33,14 @@ public class TimerService {
             throw new RuntimeException("Access denied");
         }
 
+        // Validate: Task must have planned total time to start timer
+        Task task = subtask.getTask();
+        if (task.getPlannedTotalTimeMinutes() == null) {
+            throw new RuntimeException("Cannot start timer: Task must have planned total time set first");
+        }
+
         // Stop any other running timer for this task
-        stopAllTimersForTask(subtask.getTask().getId());
+        stopAllTimersForTask(task.getId());
 
         // Check if there's already a running timer for this subtask
         Optional<TimeEntry> existingRunning = timeEntryRepository.findFirstBySubtaskIdAndEndTimeIsNull(subtaskId);
@@ -55,7 +61,6 @@ public class TimerService {
             subtaskRepository.save(subtask);
         }
 
-        Task task = subtask.getTask();
         if (task.getStatus() == Task.TaskStatus.NOT_STARTED) {
             task.setStatus(Task.TaskStatus.IN_PROGRESS);
         }
@@ -139,7 +144,7 @@ public class TimerService {
         return null;
     }
 
-    @Transactional
+    // Helper method - runs in caller's transaction
     private void stopAllTimersForTask(Long taskId) {
         List<Subtask> subtasks = subtaskRepository.findByTaskId(taskId);
         LocalDateTime now = LocalDateTime.now();

@@ -8,11 +8,12 @@ import { TaskService } from '../../services/task.service';
 import { Category, Task, TaskStatus, Subtask } from '../../models/task.model';
 import { ExportFormat, DeliveryMethod } from '../../models/export.model';
 import { SubtaskPointsModalComponent } from '../subtask-points-modal/subtask-points-modal.component';
+import { ChatbotModalComponent } from '../chatbot-modal/chatbot-modal.component';
 
 @Component({
   selector: 'app-tasks',
   standalone: true,
-  imports: [CommonModule, FormsModule, SubtaskPointsModalComponent],
+  imports: [CommonModule, FormsModule, SubtaskPointsModalComponent, ChatbotModalComponent],
   templateUrl: './tasks.component.html',
   styleUrls: ['./tasks.component.scss']
 })
@@ -34,6 +35,10 @@ export class TasksComponent implements OnInit, OnDestroy {
   // Points modal
   isPointsModalOpen = false;
   selectedTaskForPoints: Task | null = null;
+
+  // Chatbot modal
+  showChatbotModal = false;
+  selectedTaskForAnalysis: Task | null = null;
 
   // Export functionality
   exportingTaskId: number | null = null;
@@ -275,5 +280,87 @@ export class TasksComponent implements OnInit, OnDestroy {
    */
   isExporting(taskId: number): boolean {
     return this.exportingTaskId === taskId;
+  }
+
+  /**
+   * Open AI chatbot analysis
+   */
+  openChatbotAnalysis(task: Task): void {
+    this.selectedTaskForAnalysis = task;
+    this.showChatbotModal = true;
+  }
+
+  /**
+   * Close chatbot modal
+   */
+  closeChatbotModal(): void {
+    this.showChatbotModal = false;
+    this.selectedTaskForAnalysis = null;
+  }
+
+  /**
+   * Complete task (manual completion)
+   */
+  completeTask(task: Task): void {
+    if (confirm(`Complete task "${task.name}"?\n\nThis will stop all running timers and mark in-progress subtasks as completed.`)) {
+      this.taskService.updateTaskStatus(task.id, 'COMPLETED')
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (updatedTask) => {
+            // Update local task list
+            const index = this.tasks.findIndex(t => t.id === updatedTask.id);
+            if (index !== -1) {
+              this.tasks[index] = updatedTask;
+            }
+            this.filterTasks();
+            alert('✅ Task completed successfully!');
+          },
+          error: (error) => {
+            console.error('Error completing task:', error);
+            const errorMsg = error.error?.message || error.message || 'Failed to complete task';
+            alert(`❌ ${errorMsg}`);
+          }
+        });
+    }
+  }
+
+  /**
+   * Reopen task (change status back to IN_PROGRESS)
+   */
+  reopenTask(task: Task): void {
+    if (confirm(`Reopen task "${task.name}"?\n\nThis will change status to IN_PROGRESS. Time and points data will be preserved.`)) {
+      this.taskService.updateTaskStatus(task.id, 'IN_PROGRESS')
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (updatedTask) => {
+            // Update local task list
+            const index = this.tasks.findIndex(t => t.id === updatedTask.id);
+            if (index !== -1) {
+              this.tasks[index] = updatedTask;
+            }
+            this.filterTasks();
+            alert('✅ Task reopened successfully!');
+          },
+          error: (error) => {
+            console.error('Error reopening task:', error);
+            const errorMsg = error.error?.message || error.message || 'Failed to reopen task';
+            alert(`❌ ${errorMsg}`);
+          }
+        });
+    }
+  }
+
+  /**
+   * Check if task can be completed manually
+   */
+  canCompleteTask(task: Task): boolean {
+    return task.status === 'IN_PROGRESS';
+  }
+
+  /**
+   * Check if task can be reopened
+   */
+  canReopenTask(task: Task): boolean {
+    return task.status === 'COMPLETED';
   }
 }

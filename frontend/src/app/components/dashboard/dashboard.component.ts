@@ -170,13 +170,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   startTimer(subtaskId: number): void {
+    // Validate: Task must have planned time before starting timer
+    if (this.selectedTask && !this.selectedTask.plannedTotalTimeMinutes) {
+      alert('⚠️ Cannot start timer: Task must have planned total time set first.\n\nPlease edit the task and add planned time before starting the timer.');
+      return;
+    }
+
     this.timerService.startTimer(subtaskId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (timer) => {
         this.activeTimer = timer;
         this.startTimerDisplay();
         this.loadTasks();
       },
-      error: (error) => console.error('Error starting timer:', error)
+      error: (error) => {
+        console.error('Error starting timer:', error);
+        const errorMsg = error.error?.message || error.message || 'Failed to start timer';
+        alert(`❌ ${errorMsg}`);
+      }
     });
   }
 

@@ -203,6 +203,33 @@
           </div>
           
           <button 
+            class="btn btn-sm btn-outline-purple" 
+            (click)="openChatbotAnalysis(task)"
+            [disabled]="task.status !== 'COMPLETED'"
+            title="AI Teljesítményértékelés"
+          >
+            <i class="bi bi-cpu-fill"></i> AI
+          </button>
+          
+          <!-- Complete/Reopen Task Buttons -->
+          <button 
+            *ngIf="canCompleteTask(task)"
+            class="btn btn-sm btn-success" 
+            (click)="completeTask(task)"
+            title="Complete Task"
+          >
+            <i class="bi bi-check-circle-fill"></i> Complete
+          </button>
+          <button 
+            *ngIf="canReopenTask(task)"
+            class="btn btn-sm btn-warning" 
+            (click)="reopenTask(task)"
+            title="Reopen Task"
+          >
+            <i class="bi bi-arrow-counterclockwise"></i> Reopen
+          </button>
+          
+          <button 
             class="btn btn-sm btn-outline-info" 
             (click)="openPointsModal(task)"
             title="Edit subtask points"
@@ -260,3 +287,11 @@
   (close)="closePointsModal()"
   (save)="saveSubtaskPoints($event)">
 </app-subtask-points-modal>
+
+<!-- Chatbot Modal -->
+<app-chatbot-modal 
+  *ngIf="showChatbotModal && selectedTaskForAnalysis"
+  [taskId]="selectedTaskForAnalysis.id"
+  [taskName]="selectedTaskForAnalysis.name"
+  (close)="closeChatbotModal()">
+</app-chatbot-modal>

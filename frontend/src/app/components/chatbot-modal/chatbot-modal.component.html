@@ -1,0 +1,32 @@
+<div class="modal-backdrop" (click)="onClose()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>🤖 AI Teljesítményértékelés</h2>
+      <button class="close-btn" (click)="onClose()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <h3>{{ taskName }}</h3>
+
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading">
+        <div class="spinner"></div>
+        <p>AI elemzi a teljesítményed...</p>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error && !loading" class="error">
+        <p>{{ error }}</p>
+        <button (click)="requestAnalysis()">🔄 Újrapróbálás</button>
+      </div>
+
+      <!-- Analysis Result -->
+      <div *ngIf="analysis && !loading" class="analysis">
+        <div class="analysis-text">{{ analysis }}</div>
+        <button class="refresh-btn" (click)="requestAnalysis()">
+          🔄 Új értékelés kérése
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

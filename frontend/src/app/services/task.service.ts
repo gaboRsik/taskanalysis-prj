@@ -79,6 +79,16 @@ export class TaskService {
   }
 
   /**
+   * Update task status (COMPLETED, IN_PROGRESS, NOT_STARTED)
+   * @param taskId Task ID to update
+   * @param status New status
+   * @returns Observable with updated task
+   */
+  updateTaskStatus(taskId: number, status: string): Observable<Task> {
+    return this.http.patch<Task>(`${this.apiUrl}/${taskId}/status`, { status });
+  }
+
+  /**
    * Export task data as Excel with direct download
    * @param taskId Task ID to export
    * @param format Export format (XLSX or PDF)

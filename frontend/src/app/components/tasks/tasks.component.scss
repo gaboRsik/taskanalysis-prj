@@ -35,3 +35,21 @@
   padding: 0.25rem 0.5rem;
   font-size: 0.875rem;
 }
+
+.btn-outline-purple {
+  color: #667eea;
+  border-color: #667eea;
+  
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
