@@ -93,6 +93,12 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Spring Boot Actuator (Health checks & monitoring) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <!-- Spring Boot Mail (Email support) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
