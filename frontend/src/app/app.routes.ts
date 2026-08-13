@@ -9,6 +9,7 @@ import { CategoriesComponent } from './components/categories/categories.componen
 import { TemplatesComponent } from './components/templates/templates.component';
 import { ProfileComponent } from './components/profile/profile';
 import { AdminComponent } from './components/admin/admin.component';
+import { AdminTagsComponent } from './components/admin-tags/admin-tags.component';
 import { authGuard } from './guards/auth.guard';
 import { AdminGuard } from './guards/admin.guard';
 
@@ -23,6 +24,7 @@ export const routes: Routes = [
   { path: 'categories', component: CategoriesComponent, canActivate: [authGuard] },
   { path: 'templates', component: TemplatesComponent, canActivate: [authGuard] },
   { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
+  { path: 'admin-tags', component: AdminTagsComponent, canActivate: [authGuard] },
   { path: 'admin', component: AdminComponent, canActivate: [authGuard, AdminGuard] },
   { path: '**', redirectTo: '/dashboard' }
 ];

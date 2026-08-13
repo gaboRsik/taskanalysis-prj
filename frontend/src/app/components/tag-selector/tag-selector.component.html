@@ -1,0 +1,86 @@
+<div class="tag-selector">
+  <label class="form-label small text-muted">
+    <i class="bi bi-tags"></i> Tags
+  </label>
+  
+  <!-- Selected Tags Display -->
+  <div class="selected-tags">
+    <span 
+      *ngFor="let tag of getSelectedTags()" 
+      class="tag-chip"
+      [style.background-color]="tag.color"
+      [style.color]="'white'"
+    >
+      {{ tag.name }}
+      <button 
+        type="button"
+        class="tag-remove" 
+        (click)="removeTag(tag.id)"
+        title="Remove tag"
+      >
+        ×
+      </button>
+    </span>
+    
+    <button 
+      type="button"
+      class="btn-add-tag" 
+      (click)="toggleDropdown()"
+      [disabled]="loading"
+    >
+      <i class="bi bi-plus-circle"></i> Add Tag
+    </button>
+  </div>
+
+  <!-- Dropdown -->
+  <div class="tag-dropdown" *ngIf="isDropdownOpen">
+    <div class="dropdown-header">
+      <span>Select Tags</span>
+      <button type="button" class="btn-close-dropdown" (click)="closeDropdown()">×</button>
+    </div>
+    
+    <div class="tag-list" *ngIf="!loading && !error">
+      <div 
+        *ngFor="let tag of availableTags" 
+        class="tag-option"
+        (click)="toggleTag(tag.id)"
+      >
+        <input 
+          type="checkbox" 
+          [checked]="isTagSelected(tag.id)"
+          (click)="$event.stopPropagation()"
+          (change)="toggleTag(tag.id)"
+        />
+        <span 
+          class="tag-chip-small"
+          [style.background-color]="tag.color"
+          [style.color]="'white'"
+        >
+          {{ tag.name }}
+        </span>
+        <span class="tag-scope" *ngIf="!tag.isGlobal">
+          <i class="bi bi-person"></i> Personal
+        </span>
+      </div>
+      
+      <div *ngIf="availableTags.length === 0" class="no-tags">
+        No tags available. Create one first!
+      </div>
+    </div>
+    
+    <div *ngIf="loading" class="loading">
+      <span class="spinner-border spinner-border-sm"></span> Loading tags...
+    </div>
+    
+    <div *ngIf="error" class="error">
+      {{ error }}
+    </div>
+  </div>
+</div>
+
+<!-- Backdrop to close dropdown -->
+<div 
+  class="dropdown-backdrop" 
+  *ngIf="isDropdownOpen"
+  (click)="closeDropdown()"
+></div>

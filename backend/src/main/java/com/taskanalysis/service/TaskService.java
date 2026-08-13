@@ -1,5 +1,6 @@
 package com.taskanalysis.service;
 
+import com.taskanalysis.dto.SubtaskTagDTO;
 import com.taskanalysis.dto.subtask.SubtaskResponse;
 import com.taskanalysis.dto.task.TaskRequest;
 import com.taskanalysis.dto.task.TaskUpdateRequest;
@@ -248,6 +249,22 @@ public class TaskService {
         response.setEfficiencyVariancePercent(subtask.getEfficiencyVariancePercent());
         response.setTimeVariancePercent(subtask.getTimeVariancePercent());
 
+        // Map tags to DTOs
+        if (subtask.getTags() != null && !subtask.getTags().isEmpty()) {
+            List<SubtaskTagDTO> tagDTOs = subtask.getTags().stream()
+                    .map(tag -> SubtaskTagDTO.builder()
+                            .id(tag.getId())
+                            .name(tag.getName())
+                            .color(tag.getColor())
+                            .isGlobal(tag.getIsGlobal())
+                            .userId(tag.getUser() != null ? tag.getUser().getId() : null)
+                            .createdById(tag.getCreatedBy() != null ? tag.getCreatedBy().getId() : null)
+                            .createdAt(tag.getCreatedAt())
+                            .build())
+                    .collect(Collectors.toList());
+            response.setTags(tagDTOs);
+        }
+
         return response;
     }
 
@@ -300,6 +317,17 @@ public class TaskService {
                     subtask.setSubtaskNumber(templateSubtask.getSubtaskNumber());
                     subtask.setPlannedPoints(templateSubtask.getPlannedPoints());
                     subtask.setStatus(Subtask.SubtaskStatus.NOT_STARTED);
+                    
+                    // Copy tags from template subtask
+                    if (templateSubtask.getTags() != null && !templateSubtask.getTags().isEmpty()) {
+                        templateSubtask.getTags().forEach(tag -> {
+                            // Only copy tags that are visible to the user
+                            if (tag.isVisibleToUser(userId)) {
+                                subtask.addTag(tag);
+                            }
+                        });
+                    }
+                    
                     subtasks.add(subtask);
                 }
             } else {

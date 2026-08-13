@@ -9,7 +9,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "subtasks", indexes = {
@@ -52,6 +54,14 @@ public class Subtask {
 
     @OneToMany(mappedBy = "subtask", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TimeEntry> timeEntries = new ArrayList<>();
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "subtask_tag_mapping",
+        joinColumns = @JoinColumn(name = "subtask_id"),
+        inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<SubtaskTag> tags = new HashSet<>();
 
     public enum SubtaskStatus {
         NOT_STARTED,
@@ -192,6 +202,23 @@ public class Subtask {
         
         double actualTimeMinutes = totalTime / 60.0;
         return ((actualTimeMinutes - proportionalTime) / proportionalTime) * 100;
+    }
+
+    // Helper methods for managing tags
+    public void addTag(SubtaskTag tag) {
+        tags.add(tag);
+        tag.getSubtasks().add(this);
+    }
+
+    public void removeTag(SubtaskTag tag) {
+        tags.remove(tag);
+        tag.getSubtasks().remove(this);
+    }
+
+    public void clearTags() {
+        for (SubtaskTag tag : new HashSet<>(tags)) {
+            removeTag(tag);
+        }
     }
 
 }

@@ -1,16 +1,22 @@
 package com.taskanalysis.service;
 
+import com.taskanalysis.dto.SubtaskTagDTO;
 import com.taskanalysis.dto.subtask.SubtaskRequest;
 import com.taskanalysis.dto.subtask.SubtaskResponse;
 import com.taskanalysis.entity.Subtask;
+import com.taskanalysis.entity.SubtaskTag;
 import com.taskanalysis.entity.TimeEntry;
 import com.taskanalysis.repository.SubtaskRepository;
+import com.taskanalysis.repository.SubtaskTagRepository;
 import com.taskanalysis.repository.TimeEntryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class SubtaskService {
@@ -20,6 +26,9 @@ public class SubtaskService {
 
     @Autowired
     private TimeEntryRepository timeEntryRepository;
+
+    @Autowired
+    private SubtaskTagRepository subtaskTagRepository;
 
     @Transactional(readOnly = true)
     public SubtaskResponse getSubtaskById(Long userId, Long subtaskId) {
@@ -74,12 +83,30 @@ public class SubtaskService {
             }
         }
 
+        // Handle tag assignment
+        if (request.getTagIds() != null) {
+            Set<SubtaskTag> newTags = new HashSet<>();
+            for (Long tagId : request.getTagIds()) {
+                SubtaskTag tag = subtaskTagRepository.findById(tagId)
+                        .orElseThrow(() -> new RuntimeException("Tag not found: " + tagId));
+                
+                // Verify user has access to this tag (global or own)
+                if (!tag.isVisibleToUser(userId)) {
+                    throw new RuntimeException("Access denied to tag: " + tag.getName());
+                }
+                
+                newTags.add(tag);
+            }
+            subtask.setTags(newTags);
+        }
+
         Subtask updated = subtaskRepository.save(subtask);
         
         // Initialize lazy collections for metrics calculation
         // This ensures the task's subtasks collection and subtask's time entries are loaded
         updated.getTask().getSubtasks().size(); // Force initialization of task's subtasks
         updated.getTimeEntries().size(); // Force initialization of subtask's time entries
+        updated.getTags().size(); // Force initialization of subtask's tags
         
         return mapToResponse(updated);
     }
@@ -101,6 +128,19 @@ public class SubtaskService {
         response.setTotalTimeSeconds(totalSeconds);
         response.setCreatedAt(subtask.getCreatedAt());
         response.setUpdatedAt(subtask.getUpdatedAt());
+
+        // Map tags to DTOs
+        List<SubtaskTagDTO> tagDTOs = subtask.getTags().stream()
+                .map(tag -> SubtaskTagDTO.builder()
+                        .id(tag.getId())
+                        .name(tag.getName())
+                        .color(tag.getColor())
+                        .isGlobal(tag.getIsGlobal())
+                        .userId(tag.getUser() != null ? tag.getUser().getId() : null)
+                        .createdById(tag.getCreatedBy().getId())
+                        .build())
+                .collect(Collectors.toList());
+        response.setTags(tagDTOs);
 
         // Populate computed metrics from @Transient methods
         response.setProportionalPlannedTimeMinutes(subtask.getProportionalPlannedTimeMinutes());

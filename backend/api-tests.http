@@ -90,3 +90,61 @@ Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MkBleGFtcGxlLmNvbSIsI
   "status": "IN_PROGRESS"
 }
 
+### ===== SUBTASK TAGS API =====
+
+### 13. Get all visible tags (global + user's own)
+GET http://localhost:8080/api/subtask-tags
+Authorization: Bearer {{auth_token}}
+
+### 14. Get all global tags (Admin only)
+GET http://localhost:8080/api/subtask-tags/global
+Authorization: Bearer {{auth_token}}
+
+### 15. Create a USER-SPECIFIC tag
+POST http://localhost:8080/api/subtask-tags
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "Performance Optimization",
+  "color": "#9333ea",
+  "isGlobal": false
+}
+
+### 16. Create a GLOBAL tag (Admin only)
+POST http://localhost:8080/api/subtask-tags
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "Security",
+  "color": "#dc2626",
+  "isGlobal": true
+}
+
+### 17. Get tag by ID
+GET http://localhost:8080/api/subtask-tags/1
+Authorization: Bearer {{auth_token}}
+
+### 18. Update tag
+PUT http://localhost:8080/api/subtask-tags/1
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "Frontend Development",
+  "color": "#3b82f6"
+}
+
+### 19. Delete tag
+DELETE http://localhost:8080/api/subtask-tags/13
+Authorization: Bearer {{auth_token}}
+
+### 20. Get tags by IDs (batch)
+POST http://localhost:8080/api/subtask-tags/batch
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+[1, 2, 3, 4]
+
+###

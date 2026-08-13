@@ -1,11 +1,13 @@
 package com.taskanalysis.dto.subtask;
 
+import com.taskanalysis.dto.SubtaskTagDTO;
 import com.taskanalysis.entity.Subtask;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -21,6 +23,9 @@ public class SubtaskResponse {
     private Long totalTimeSeconds;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
+    // Tags associated with this subtask
+    private List<SubtaskTagDTO> tags;
 
     // ===== Computed Metrics =====
     private Integer proportionalPlannedTimeMinutes;

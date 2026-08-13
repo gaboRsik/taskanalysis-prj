@@ -20,5 +20,11 @@ public class TimerResponse {
     private LocalDateTime endTime;
     private Long durationSeconds;
     private boolean isRunning;
+    
+    // Auto-completion fields
+    private boolean timeLimitReached;        // True if planned time limit was reached
+    private boolean taskAutoCompleted;       // True if task was auto-completed due to time limit
+    private Long totalTaskTimeSeconds;       // Total time spent on task after this stop
+    private Long plannedTimeSeconds;         // Planned time in seconds for comparison
 
 }

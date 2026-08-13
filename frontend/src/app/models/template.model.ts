@@ -14,6 +14,7 @@ export interface Template {
 export interface TemplateSubtask {
   subtaskNumber: number;
   plannedPoints: number;
+  tagIds?: number[];
 }
 
 export interface TemplateRequest {

@@ -87,7 +87,41 @@ public class TimerService {
         timeEntry.setDurationSeconds(durationSeconds);
 
         TimeEntry saved = timeEntryRepository.save(timeEntry);
-        return mapToResponse(saved, subtask);
+        
+        // Check if time limit reached and auto-complete task if necessary
+        Task task = subtask.getTask();
+        boolean timeLimitReached = false;
+        boolean taskAutoCompleted = false;
+        
+        if (task.getPlannedTotalTimeMinutes() != null) {
+            // Calculate total time spent on task (refresh from DB to get latest)
+            subtaskRepository.flush(); // Ensure latest data
+            Task refreshedTask = task; // Already has updated relationships
+            long totalTaskTimeSeconds = refreshedTask.getTotalActualTimeSeconds();
+            long plannedTimeSeconds = task.getPlannedTotalTimeMinutes() * 60L;
+            
+            // Check if we've reached or exceeded the planned time
+            if (totalTaskTimeSeconds >= plannedTimeSeconds) {
+                timeLimitReached = true;
+                
+                // Auto-complete task if not already completed
+                if (task.getStatus() != Task.TaskStatus.COMPLETED) {
+                    task.setStatus(Task.TaskStatus.COMPLETED);
+                    
+                    // Auto-complete all subtasks as well
+                    for (Subtask st : task.getSubtasks()) {
+                        if (st.getStatus() != Subtask.SubtaskStatus.COMPLETED) {
+                            st.setStatus(Subtask.SubtaskStatus.COMPLETED);
+                        }
+                    }
+                    
+                    // subtaskRepository will cascade save the task
+                    taskAutoCompleted = true;
+                }
+            }
+        }
+        
+        return mapToResponse(saved, subtask, timeLimitReached, taskAutoCompleted);
     }
 
     @Transactional(readOnly = true)
@@ -122,7 +156,35 @@ public class TimerService {
                 long durationSeconds = Duration.between(timeEntry.getStartTime(), endTime).getSeconds();
                 timeEntry.setDurationSeconds(durationSeconds);
                 TimeEntry saved = timeEntryRepository.save(timeEntry);
-                return mapToResponse(saved, subtask);
+                
+                // Check time limit
+                Task task = subtask.getTask();
+                boolean timeLimitReached = false;
+                boolean taskAutoCompleted = false;
+                
+                if (task.getPlannedTotalTimeMinutes() != null) {
+                    subtaskRepository.flush();
+                    long totalTaskTimeSeconds = task.getTotalActualTimeSeconds();
+                    long plannedTimeSeconds = task.getPlannedTotalTimeMinutes() * 60L;
+                    
+                    if (totalTaskTimeSeconds >= plannedTimeSeconds) {
+                        timeLimitReached = true;
+                        if (task.getStatus() != Task.TaskStatus.COMPLETED) {
+                            task.setStatus(Task.TaskStatus.COMPLETED);
+                            
+                            // Auto-complete all subtasks as well
+                            for (Subtask st : task.getSubtasks()) {
+                                if (st.getStatus() != Subtask.SubtaskStatus.COMPLETED) {
+                                    st.setStatus(Subtask.SubtaskStatus.COMPLETED);
+                                }
+                            }
+                            
+                            taskAutoCompleted = true;
+                        }
+                    }
+                }
+                
+                return mapToResponse(saved, subtask, timeLimitReached, taskAutoCompleted);
             }
         }
         
@@ -162,6 +224,10 @@ public class TimerService {
     }
 
     private TimerResponse mapToResponse(TimeEntry timeEntry, Subtask subtask) {
+        return mapToResponse(timeEntry, subtask, false, false);
+    }
+    
+    private TimerResponse mapToResponse(TimeEntry timeEntry, Subtask subtask, boolean timeLimitReached, boolean taskAutoCompleted) {
         boolean isRunning = timeEntry.getEndTime() == null;
         Long duration = timeEntry.getDurationSeconds();
 
@@ -172,18 +238,29 @@ public class TimerService {
         Task task = subtask.getTask();
         String taskTitle = task.getName();
         String subtaskTitle = "Subtask #" + subtask.getSubtaskNumber();
+        
+        // Calculate total task time and planned time
+        Long totalTaskTimeSeconds = (long) task.getTotalActualTimeSeconds();
+        Long plannedTimeSeconds = task.getPlannedTotalTimeMinutes() != null 
+                ? task.getPlannedTotalTimeMinutes() * 60L 
+                : null;
 
-        return new TimerResponse(
-                timeEntry.getId(),
-                subtask.getId(),
-                subtask.getSubtaskNumber(),
-                taskTitle,
-                subtaskTitle,
-                timeEntry.getStartTime(),
-                timeEntry.getEndTime(),
-                duration,
-                isRunning
-        );
+        TimerResponse response = new TimerResponse();
+        response.setTimeEntryId(timeEntry.getId());
+        response.setSubtaskId(subtask.getId());
+        response.setSubtaskNumber(subtask.getSubtaskNumber());
+        response.setTaskTitle(taskTitle);
+        response.setSubtaskTitle(subtaskTitle);
+        response.setStartTime(timeEntry.getStartTime());
+        response.setEndTime(timeEntry.getEndTime());
+        response.setDurationSeconds(duration);
+        response.setRunning(isRunning);
+        response.setTimeLimitReached(timeLimitReached);
+        response.setTaskAutoCompleted(taskAutoCompleted);
+        response.setTotalTaskTimeSeconds(totalTaskTimeSeconds);
+        response.setPlannedTimeSeconds(plannedTimeSeconds);
+        
+        return response;
     }
 
 }

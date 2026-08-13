@@ -1,0 +1,232 @@
+<div class="container py-4">
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0"><i class="bi bi-tags"></i> Tag Management</h5>
+      <button class="btn btn-light btn-sm" (click)="openCreateForm()">
+        <i class="bi bi-plus-lg"></i> New Tag
+      </button>
+    </div>
+
+    <div class="card-body">
+      <!-- Loading state -->
+      <div *ngIf="loading" class="text-center py-4">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+
+      <!-- Error state -->
+      <div *ngIf="error && !loading" class="alert alert-danger">
+        {{ error }}
+      </div>
+
+      <!-- Tags content -->
+      <div *ngIf="!loading && !error">
+        <!-- Global Tags Section -->
+        <div class="mb-4">
+          <h6 class="section-title">
+            <i class="bi bi-globe"></i> Global Tags ({{ getGlobalTags().length }})
+          </h6>
+          <p class="text-muted small">These tags are available to all users.</p>
+          
+          <div *ngIf="getGlobalTags().length === 0" class="text-muted">
+            No global tags created yet.
+          </div>
+
+          <div class="tag-list">
+            <div *ngFor="let tag of getGlobalTags()" class="tag-item">
+              <div class="tag-preview">
+                <span 
+                  class="tag-chip"
+                  [style.background-color]="tag.color"
+                  [style.color]="'white'"
+                >
+                  {{ tag.name }}
+                </span>
+                <small class="text-muted ms-2">
+                  <i class="bi bi-bookmark"></i> Used {{ tag.usageCount || 0 }} time(s)
+                </small>
+              </div>
+              <div class="tag-actions">
+                <button 
+                  class="btn btn-sm btn-outline-primary me-1" 
+                  (click)="openEditForm(tag)"
+                  title="Edit tag"
+                >
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button 
+                  class="btn btn-sm btn-outline-danger" 
+                  (click)="deleteTag(tag)"
+                  title="Delete tag"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Tags Section -->
+        <div>
+          <h6 class="section-title">
+            <i class="bi bi-person"></i> Personal Tags ({{ getUserTags().length }})
+          </h6>
+          <p class="text-muted small">These are your personal tags, visible only to you.</p>
+          
+          <div *ngIf="getUserTags().length === 0" class="text-muted">
+            No personal tags created yet.
+          </div>
+
+          <div class="tag-list">
+            <div *ngFor="let tag of getUserTags()" class="tag-item">
+              <div class="tag-preview">
+                <span 
+                  class="tag-chip"
+                  [style.background-color]="tag.color"
+                  [style.color]="'white'"
+                >
+                  {{ tag.name }}
+                </span>
+                <small class="text-muted ms-2">
+                  <i class="bi bi-bookmark"></i> Used {{ tag.usageCount || 0 }} time(s)
+                </small>
+              </div>
+              <div class="tag-actions">
+                <button 
+                  class="btn btn-sm btn-outline-primary me-1" 
+                  (click)="openEditForm(tag)"
+                  title="Edit tag"
+                >
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button 
+                  class="btn btn-sm btn-outline-danger" 
+                  (click)="deleteTag(tag)"
+                  title="Delete tag"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create/Edit Modal -->
+<div class="modal" [class.show]="showForm" [style.display]="showForm ? 'block' : 'none'" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          {{ editingTag ? 'Edit Tag' : 'Create New Tag' }}
+        </h5>
+        <button type="button" class="btn-close" (click)="closeForm()"></button>
+      </div>
+      
+      <div class="modal-body">
+        <form (ngSubmit)="saveTag()">
+          <!-- Tag Name -->
+          <div class="mb-3">
+            <label class="form-label">Tag Name *</label>
+            <input 
+              type="text" 
+              class="form-control" 
+              [(ngModel)]="formData.name"
+              name="name"
+              placeholder="e.g., High Priority, Backend, Bug Fix"
+              required
+            >
+          </div>
+
+          <!-- Color Picker -->
+          <div class="mb-3">
+            <label class="form-label">Color *</label>
+            <div class="color-picker-grid">
+              <button
+                *ngFor="let color of predefinedColors"
+                type="button"
+                class="color-option"
+                [class.selected]="formData.color === color.value"
+                [style.background-color]="color.value"
+                (click)="selectColor(color.value)"
+                [title]="color.name"
+              >
+                <i *ngIf="formData.color === color.value" class="bi bi-check"></i>
+              </button>
+            </div>
+            
+            <!-- Custom color input -->
+            <div class="mt-2 d-flex align-items-center">
+              <label class="form-label mb-0 me-2">Custom:</label>
+              <input 
+                type="color" 
+                class="form-control form-control-color" 
+                [(ngModel)]="formData.color"
+                name="color"
+              >
+              <span class="ms-2 text-muted small">{{ formData.color }}</span>
+            </div>
+          </div>
+
+          <!-- Tag Preview -->
+          <div class="mb-3">
+            <label class="form-label">Preview:</label>
+            <div>
+              <span 
+                class="tag-chip preview"
+                [style.background-color]="formData.color"
+                [style.color]="'white'"
+              >
+                {{ formData.name || 'Tag Name' }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Global Tag Option -->
+          <div class="mb-3">
+            <div class="form-check">
+              <input 
+                type="checkbox" 
+                class="form-check-input" 
+                id="isGlobal"
+                [(ngModel)]="formData.isGlobal"
+                name="isGlobal"
+                [disabled]="!isAdmin()"
+              >
+              <label class="form-check-label" for="isGlobal">
+                <i class="bi bi-globe"></i> Make this tag global (available to all users)
+              </label>
+            </div>
+            <small class="text-muted" *ngIf="isAdmin()">
+              If unchecked, the tag will be personal and visible only to you.
+            </small>
+            <small class="text-warning" *ngIf="!isAdmin()">
+              <i class="bi bi-info-circle"></i> Only administrators can create global tags. Your tags will be personal.
+            </small>
+          </div>
+        </form>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeForm()">
+          Cancel
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-primary" 
+          (click)="saveTag()"
+          [disabled]="!formData.name.trim()"
+        >
+          {{ editingTag ? 'Update' : 'Create' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal backdrop -->
+<div class="modal-backdrop fade" [class.show]="showForm" *ngIf="showForm"></div>

@@ -8,11 +8,12 @@ import { TemplateService } from '../../services/template.service';
 import { CategoryService } from '../../services/category.service';
 import { Template, TemplateRequest, TemplateSubtask } from '../../models/template.model';
 import { Category } from '../../models/task.model';
+import { TagSelectorComponent } from '../tag-selector/tag-selector.component';
 
 @Component({
   selector: 'app-templates',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TagSelectorComponent],
   templateUrl: './templates.component.html',
   styleUrls: ['./templates.component.scss']
 })
@@ -32,6 +33,9 @@ export class TemplatesComponent implements OnInit, OnDestroy {
   subtaskCount: number = 3;
   taskCount: number = 1;
   templateSubtasks: TemplateSubtask[] = [];
+  
+  // Tag management
+  subtaskTagIds: Map<number, number[]> = new Map();
   
   // UI state
   errorMessage: string = '';
@@ -94,6 +98,14 @@ export class TemplatesComponent implements OnInit, OnDestroy {
     this.subtaskCount = template.subtaskCount;
     this.taskCount = template.taskCount;
     this.templateSubtasks = [...template.templateSubtasks];
+    
+    // Initialize tag map
+    this.subtaskTagIds.clear();
+    template.templateSubtasks.forEach(ts => {
+      if (ts.tagIds && ts.tagIds.length > 0) {
+        this.subtaskTagIds.set(ts.subtaskNumber, ts.tagIds);
+      }
+    });
   }
 
   closeForm(): void {
@@ -108,6 +120,7 @@ export class TemplatesComponent implements OnInit, OnDestroy {
     this.subtaskCount = 3;
     this.taskCount = 1;
     this.templateSubtasks = [];
+    this.subtaskTagIds.clear();
     this.editingTemplateId = null;
     this.errorMessage = '';
     this.successMessage = '';
@@ -135,13 +148,19 @@ export class TemplatesComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Prepare subtasks with tags
+    const subtasksWithTags = this.templateSubtasks.map(subtask => ({
+      ...subtask,
+      tagIds: this.subtaskTagIds.get(subtask.subtaskNumber) || []
+    }));
+
     const request: TemplateRequest = {
       name: this.templateName.trim(),
       description: this.templateDescription.trim() || undefined,
       categoryId: this.selectedCategoryId!,
       subtaskCount: this.subtaskCount,
       taskCount: this.taskCount,
-      templateSubtasks: this.templateSubtasks
+      templateSubtasks: subtasksWithTags
     };
 
     const operation = this.isEditMode && this.editingTemplateId
@@ -231,5 +250,14 @@ export class TemplatesComponent implements OnInit, OnDestroy {
   getCategoryName(categoryId: number): string {
     const category = this.categories.find(c => c.id === categoryId);
     return category ? category.name : 'Unknown';
+  }
+
+  // Tag management methods
+  updateTagIds(subtaskNumber: number, tagIds: number[]): void {
+    this.subtaskTagIds.set(subtaskNumber, tagIds);
+  }
+
+  getTagIds(subtaskNumber: number): number[] {
+    return this.subtaskTagIds.get(subtaskNumber) || [];
   }
 }

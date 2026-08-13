@@ -28,6 +28,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
   activeTimer: TimerResponse | null = null;
   timerInterval: any;
   elapsedTime: string = '00:00:00';
+  
+  // Alias for template compatibility
+  get remainingTime(): string {
+    return this.elapsedTime;
+  }
 
   // Chart data
   chartData: any[] = [];
@@ -170,23 +175,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   startTimer(subtaskId: number): void {
-    // Validate: Task must have planned time before starting timer
-    if (this.selectedTask && !this.selectedTask.plannedTotalTimeMinutes) {
-      alert('⚠️ Cannot start timer: Task must have planned total time set first.\n\nPlease edit the task and add planned time before starting the timer.');
-      return;
-    }
-
     this.timerService.startTimer(subtaskId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (timer) => {
         this.activeTimer = timer;
         this.startTimerDisplay();
         this.loadTasks();
       },
-      error: (error) => {
-        console.error('Error starting timer:', error);
-        const errorMsg = error.error?.message || error.message || 'Failed to start timer';
-        alert(`❌ ${errorMsg}`);
-      }
+      error: (error) => console.error('Error starting timer:', error)
     });
   }
 
@@ -250,11 +245,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.isPointsModalOpen = false;
   }
 
-  saveSubtaskPoints(subtasks: Subtask[]): void {
-    this.taskService.updateSubtaskPoints(subtasks)
+  saveSubtaskPoints(subtasksWithTags: {subtask: Subtask, tagIds: number[]}[]): void {
+    console.log('saveSubtaskPoints called with:', subtasksWithTags);
+    
+    this.taskService.updateSubtaskPoints(subtasksWithTags)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: () => {
+        next: (results) => {
+          console.log('Update successful, results:', results);
           this.closePointsModal();
           if (this.selectedTaskId) {
             this.loadTasks(); // Reload to get updated data
@@ -262,7 +260,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error updating subtask points:', error);
-          alert('Hiba történt a pontok mentése során');
+          alert('Hiba történt a pontok mentése során: ' + (error.error?.message || error.message));
         }
       });
   }

@@ -1,0 +1,139 @@
+.card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: none;
+}
+
+.card-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  
+  h5 {
+    margin: 0;
+  }
+}
+
+.section-title {
+  color: #495057;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.tag-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tag-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: #e9ecef;
+    transform: translateX(4px);
+  }
+}
+
+.tag-preview {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  
+  &.preview {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+  }
+}
+
+.tag-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+// Color picker grid
+.color-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.color-option {
+  width: 50px;
+  height: 50px;
+  border: 3px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  &.selected {
+    border-color: #000;
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+}
+
+// Modal styling
+.modal {
+  &.show {
+    display: block;
+    background: rgba(0, 0, 0, 0.5);
+  }
+}
+
+.modal-backdrop {
+  &.show {
+    opacity: 0.5;
+  }
+}
+
+.btn-outline-primary, .btn-outline-danger {
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .color-picker-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .tag-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .tag-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

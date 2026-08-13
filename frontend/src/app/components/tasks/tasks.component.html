@@ -259,7 +259,7 @@
           *ngFor="let subtask of task.subtasks" 
           class="list-group-item d-flex justify-content-between align-items-center"
         >
-          <div>
+          <div class="flex-grow-1">
             <strong>Subtask #{{ subtask.subtaskNumber }}</strong>
             <span 
               class="badge ms-2"
@@ -272,6 +272,19 @@
             <div class="text-muted small">
               <i class="bi bi-bar-chart"></i> Points: {{ subtask.plannedPoints || 0 }}
               <span *ngIf="subtask.actualPoints && subtask.actualPoints > 0"> | Actual: {{ subtask.actualPoints }}</span>
+            </div>
+            
+            <!-- Tags -->
+            <div class="subtask-tags mt-2" *ngIf="subtask.tags && subtask.tags.length > 0">
+              <span 
+                *ngFor="let tag of subtask.tags"
+                class="tag-chip-small"
+                [style.background-color]="tag.color"
+                [style.color]="'white'"
+                [title]="tag.isGlobal ? 'Global tag' : 'Personal tag'"
+              >
+                {{ tag.name }}
+              </span>
             </div>
           </div>
         </div>

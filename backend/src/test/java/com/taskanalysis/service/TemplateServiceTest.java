@@ -103,8 +103,8 @@ class TemplateServiceTest {
         testRequest.setSubtaskCount(3);
         
         List<TemplateSubtaskDTO> subtaskDTOs = Arrays.asList(
-            new TemplateSubtaskDTO(1, 5),
-            new TemplateSubtaskDTO(2, 3)
+            new TemplateSubtaskDTO(1, 5, null),
+            new TemplateSubtaskDTO(2, 3, null)
         );
         testRequest.setTemplateSubtasks(subtaskDTOs);
     }

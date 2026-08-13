@@ -36,7 +36,7 @@ export class TasksComponent implements OnInit, OnDestroy {
   isPointsModalOpen = false;
   selectedTaskForPoints: Task | null = null;
 
-  // Chatbot modal
+  // Chatbot modal (for future feature)
   showChatbotModal = false;
   selectedTaskForAnalysis: Task | null = null;
 
@@ -193,8 +193,8 @@ export class TasksComponent implements OnInit, OnDestroy {
     this.selectedTaskForPoints = null;
   }
 
-  saveSubtaskPoints(subtasks: Subtask[]): void {
-    this.taskService.updateSubtaskPoints(subtasks)
+  saveSubtaskPoints(subtasksWithTags: {subtask: Subtask, tagIds: number[]}[]): void {
+    this.taskService.updateSubtaskPoints(subtasksWithTags)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
@@ -283,7 +283,7 @@ export class TasksComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Open AI chatbot analysis
+   * Open chatbot analysis modal (future feature)
    */
   openChatbotAnalysis(task: Task): void {
     this.selectedTaskForAnalysis = task;
@@ -299,68 +299,41 @@ export class TasksComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Complete task (manual completion)
-   */
-  completeTask(task: Task): void {
-    if (confirm(`Complete task "${task.name}"?\n\nThis will stop all running timers and mark in-progress subtasks as completed.`)) {
-      this.taskService.updateTaskStatus(task.id, 'COMPLETED')
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (updatedTask) => {
-            // Update local task list
-            const index = this.tasks.findIndex(t => t.id === updatedTask.id);
-            if (index !== -1) {
-              this.tasks[index] = updatedTask;
-            }
-            this.filterTasks();
-            alert('✅ Task completed successfully!');
-          },
-          error: (error) => {
-            console.error('Error completing task:', error);
-            const errorMsg = error.error?.message || error.message || 'Failed to complete task';
-            alert(`❌ ${errorMsg}`);
-          }
-        });
-    }
-  }
-
-  /**
-   * Reopen task (change status back to IN_PROGRESS)
-   */
-  reopenTask(task: Task): void {
-    if (confirm(`Reopen task "${task.name}"?\n\nThis will change status to IN_PROGRESS. Time and points data will be preserved.`)) {
-      this.taskService.updateTaskStatus(task.id, 'IN_PROGRESS')
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (updatedTask) => {
-            // Update local task list
-            const index = this.tasks.findIndex(t => t.id === updatedTask.id);
-            if (index !== -1) {
-              this.tasks[index] = updatedTask;
-            }
-            this.filterTasks();
-            alert('✅ Task reopened successfully!');
-          },
-          error: (error) => {
-            console.error('Error reopening task:', error);
-            const errorMsg = error.error?.message || error.message || 'Failed to reopen task';
-            alert(`❌ ${errorMsg}`);
-          }
-        });
-    }
-  }
-
-  /**
-   * Check if task can be completed manually
+   * Check if task can be completed (all subtasks done)
    */
   canCompleteTask(task: Task): boolean {
-    return task.status === 'IN_PROGRESS';
+    return task.status !== TaskStatus.COMPLETED && 
+           task.subtasks.every(st => st.status === 'COMPLETED');
+  }
+
+  /**
+   * Complete a task
+   */
+  completeTask(task: Task): void {
+    this.taskService.update(task.id, { status: TaskStatus.COMPLETED })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => this.loadTasks(),
+        error: (error) => console.error('Error completing task:', error)
+      });
   }
 
   /**
    * Check if task can be reopened
    */
   canReopenTask(task: Task): boolean {
-    return task.status === 'COMPLETED';
+    return task.status === TaskStatus.COMPLETED;
+  }
+
+  /**
+   * Reopen a completed task
+   */
+  reopenTask(task: Task): void {
+    this.taskService.update(task.id, { status: TaskStatus.IN_PROGRESS })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => this.loadTasks(),
+        error: (error) => console.error('Error reopening task:', error)
+      });
   }
 }

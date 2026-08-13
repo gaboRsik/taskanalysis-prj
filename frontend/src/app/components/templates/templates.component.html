@@ -143,29 +143,47 @@
 
             <!-- Template Subtasks -->
             <div class="mb-3" *ngIf="templateSubtasks.length > 0">
-              <label class="form-label">Subtask Planned Points</label>
-              <div class="row g-2">
+              <label class="form-label">Subtask Planned Points & Tags</label>
+              <div class="subtask-config-list">
                 <div
-                  class="col-md-6 col-lg-4"
+                  class="subtask-config-item"
                   *ngFor="let subtask of templateSubtasks; let i = index"
                 >
-                  <div class="input-group input-group-sm">
-                    <span class="input-group-text">{{ subtask.subtaskNumber }}</span>
-                    <input
-                      type="number"
-                      class="form-control"
-                      [(ngModel)]="subtask.plannedPoints"
-                      [name]="'plannedPoints' + i"
-                      min="0"
-                      placeholder="Points"
-                    />
-                    <span class="input-group-text">pts</span>
+                  <div class="subtask-header">
+                    <strong>Subtask #{{ subtask.subtaskNumber }}</strong>
+                  </div>
+                  
+                  <div class="row g-3 mt-1">
+                    <!-- Planned Points -->
+                    <div class="col-md-4">
+                      <label class="form-label small">Planned Points</label>
+                      <div class="input-group input-group-sm">
+                        <input
+                          type="number"
+                          class="form-control"
+                          [(ngModel)]="subtask.plannedPoints"
+                          [name]="'plannedPoints' + i"
+                          min="0"
+                          placeholder="Points"
+                        />
+                        <span class="input-group-text">pts</span>
+                      </div>
+                    </div>
+                    
+                    <!-- Tags -->
+                    <div class="col-md-8">
+                      <label class="form-label small">Tags</label>
+                      <app-tag-selector
+                        [selectedTagIds]="getTagIds(subtask.subtaskNumber)"
+                        (selectedTagIdsChange)="updateTagIds(subtask.subtaskNumber, $event)"
+                      ></app-tag-selector>
+                    </div>
                   </div>
                 </div>
               </div>
               <small class="text-muted">
                 <i class="bi bi-lightbulb me-1"></i>
-                Set estimated points for each subtask (optional)
+                Set estimated points and tags for each subtask (optional)
               </small>
             </div>
 

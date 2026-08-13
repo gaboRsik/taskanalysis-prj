@@ -31,11 +31,12 @@ export interface Task {
 }
 
 export interface TaskRequest {
-  name: string;
+  name?: string;
   description?: string;
   categoryId?: number;
   subtaskCount?: number;
   plannedTotalTimeMinutes?: number;
+  status?: TaskStatus;
 }
 
 export interface Subtask {
@@ -51,6 +52,7 @@ export interface Subtask {
   totalTimeSeconds: number;
   createdAt: string;
   updatedAt: string;
+  tags?: Array<{id: number; name: string; color?: string; isGlobal?: boolean}>;
 
   // Computed metrics
   proportionalPlannedTimeMinutes?: number;
@@ -65,6 +67,7 @@ export interface Subtask {
 export interface SubtaskRequest {
   plannedPoints?: number;
   actualPoints?: number;
+  tagIds?: number[];
 }
 
 export interface TimerResponse {

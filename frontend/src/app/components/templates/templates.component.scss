@@ -56,3 +56,26 @@ form {
     font-size: 0.85rem;
   }
 }
+
+// Subtask configuration list
+.subtask-config-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.subtask-config-item {
+  padding: 1rem;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  
+  &:hover {
+    background: #e9ecef;
+  }
+}
+
+.subtask-header {
+  margin-bottom: 0.5rem;
+  color: #495057;
+}

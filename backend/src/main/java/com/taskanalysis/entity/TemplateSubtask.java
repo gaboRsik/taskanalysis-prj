@@ -8,6 +8,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Template Subtask Entity
@@ -38,6 +40,14 @@ public class TemplateSubtask {
     @Column(name = "planned_points")
     private Integer plannedPoints;
 
+    @ManyToMany
+    @JoinTable(
+        name = "template_subtask_tag_mapping",
+        joinColumns = @JoinColumn(name = "template_subtask_id"),
+        inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<SubtaskTag> tags = new HashSet<>();
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -45,4 +55,20 @@ public class TemplateSubtask {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    // Helper methods for managing tags
+    public void addTag(SubtaskTag tag) {
+        tags.add(tag);
+        tag.getTemplateSubtasks().add(this);
+    }
+
+    public void removeTag(SubtaskTag tag) {
+        tags.remove(tag);
+        tag.getTemplateSubtasks().remove(this);
+    }
+
+    public void clearTags() {
+        tags.forEach(tag -> tag.getTemplateSubtasks().remove(this));
+        tags.clear();
+    }
 }

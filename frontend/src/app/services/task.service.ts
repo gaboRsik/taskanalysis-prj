@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, forkJoin, of } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { Task, TaskRequest, Subtask, SubtaskRequest } from '../models/task.model';
 import { ExportRequest, ExportResponse, ExportFormat, DeliveryMethod } from '../models/export.model';
@@ -36,24 +37,41 @@ export class TaskService {
   }
 
   updateSubtask(subtaskId: number, request: SubtaskRequest): Observable<Subtask> {
-    return this.http.put<Subtask>(`${this.subtaskUrl}/${subtaskId}`, request);
+    console.log(`Sending PUT request to ${this.subtaskUrl}/${subtaskId}`, request);
+    return this.http.put<Subtask>(`${this.subtaskUrl}/${subtaskId}`, request).pipe(
+      tap(
+        result => console.log(`Subtask ${subtaskId} updated successfully:`, result),
+        error => console.error(`Error updating subtask ${subtaskId}:`, error)
+      )
+    );
   }
 
-  updateSubtaskPoints(subtasks: Subtask[]): Observable<Subtask[]> {
-    const updates = subtasks.map(subtask => 
-      this.updateSubtask(subtask.id, {
-        plannedPoints: subtask.plannedPoints,
-        actualPoints: subtask.actualPoints
-      })
-    );
-    return new Observable(observer => {
-      Promise.all(updates.map(obs => obs.toPromise()))
-        .then(results => {
-          observer.next(results as Subtask[]);
-          observer.complete();
-        })
-        .catch(error => observer.error(error));
+  updateSubtaskPoints(subtasksWithTags: {subtask: Subtask, tagIds: number[]}[]): Observable<Subtask[]> {
+    console.log('TaskService.updateSubtaskPoints called with:', subtasksWithTags);
+    
+    if (subtasksWithTags.length === 0) {
+      console.log('No subtasks to update, returning empty array');
+      return of([]);
+    }
+    
+    const updates = subtasksWithTags.map(item => {
+      console.log(`Creating update request for subtask ${item.subtask.id}:`, {
+        plannedPoints: item.subtask.plannedPoints,
+        actualPoints: item.subtask.actualPoints,
+        tagIds: item.tagIds
+      });
+      
+      return this.updateSubtask(item.subtask.id, {
+        plannedPoints: item.subtask.plannedPoints,
+        actualPoints: item.subtask.actualPoints,
+        tagIds: item.tagIds
+      });
     });
+    
+    console.log(`Sending ${updates.length} update requests with forkJoin`);
+    return forkJoin(updates).pipe(
+      tap(results => console.log('forkJoin completed, results:', results))
+    );
   }
 
   getTasks(): Observable<Task[]> {

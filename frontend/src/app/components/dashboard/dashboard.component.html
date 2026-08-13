@@ -91,13 +91,22 @@
                 </span>
               </small>
             </div>
-            <button
-              class="btn btn-sm btn-outline-info"
-              (click)="openPointsModal()"
-              title="Edit subtask points"
-            >
-              <i class="bi bi-pencil-square"></i> Edit Points
-            </button>
+            <div class="d-flex align-items-center gap-3">
+              <!-- Remaining Time Display -->
+              <div *ngIf="selectedTask.plannedTotalTimeMinutes" class="remaining-time-display">
+                <div class="time-label">Hátralévő idő:</div>
+                <div class="time-value" [class.time-critical]="remainingTime === '00:00:00'">
+                  <i class="bi bi-clock"></i> {{ remainingTime }}
+                </div>
+              </div>
+              <button
+                class="btn btn-sm btn-outline-info"
+                (click)="openPointsModal()"
+                title="Edit subtask points"
+              >
+                <i class="bi bi-pencil-square"></i> Edit Points
+              </button>
+            </div>
           </div>
         </div>
         <div class="card-body">
@@ -111,7 +120,10 @@
               *ngFor="let subtask of selectedTask.subtasks"
               class="subtask-card"
               [class.active-timer]="activeTimer?.subtaskId === subtask.id"
-              (click)="activeTimer?.subtaskId === subtask.id ? stopTimer() : startTimer(subtask.id)"
+              [class.task-completed]="selectedTask.status === TaskStatus.COMPLETED"
+              [class.disabled]="selectedTask.status === TaskStatus.COMPLETED && activeTimer?.subtaskId !== subtask.id"
+              (click)="selectedTask.status === TaskStatus.COMPLETED && activeTimer?.subtaskId !== subtask.id ? null : (activeTimer?.subtaskId === subtask.id ? stopTimer() : startTimer(subtask.id))"
+              [title]="selectedTask.status === TaskStatus.COMPLETED && activeTimer?.subtaskId !== subtask.id ? 'Timer cannot be started - Task is completed' : ''"
             >
               <!-- Subtask Number Badge -->
               <div class="subtask-number">

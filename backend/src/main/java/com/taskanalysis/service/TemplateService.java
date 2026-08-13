@@ -29,6 +29,7 @@ public class TemplateService {
     private final TaskTemplateRepository templateRepository;
     private final CategoryRepository categoryRepository;
     private final EntityManager entityManager;
+    private final com.taskanalysis.repository.SubtaskTagRepository subtaskTagRepository;
 
     /**
      * Get all templates for the current user
@@ -92,6 +93,16 @@ public class TemplateService {
                 templateSubtask.setTemplate(template);
                 templateSubtask.setSubtaskNumber(dto.getSubtaskNumber());
                 templateSubtask.setPlannedPoints(dto.getPlannedPoints());
+                
+                // Add tags if provided
+                if (dto.getTagIds() != null && !dto.getTagIds().isEmpty()) {
+                    List<SubtaskTag> tags = subtaskTagRepository.findByIdsVisibleToUser(dto.getTagIds(), user.getId());
+                    if (tags.size() != dto.getTagIds().size()) {
+                        throw new BusinessException("Some tags are not accessible to this user");
+                    }
+                    tags.forEach(templateSubtask::addTag);
+                }
+                
                 templateSubtasks.add(templateSubtask);
             }
             
@@ -146,6 +157,16 @@ public class TemplateService {
                 templateSubtask.setTemplate(template);
                 templateSubtask.setSubtaskNumber(dto.getSubtaskNumber());
                 templateSubtask.setPlannedPoints(dto.getPlannedPoints());
+                
+                // Add tags if provided
+                if (dto.getTagIds() != null && !dto.getTagIds().isEmpty()) {
+                    List<SubtaskTag> tags = subtaskTagRepository.findByIdsVisibleToUser(dto.getTagIds(), user.getId());
+                    if (tags.size() != dto.getTagIds().size()) {
+                        throw new BusinessException("Some tags are not accessible to this user");
+                    }
+                    tags.forEach(templateSubtask::addTag);
+                }
+                
                 template.getTemplateSubtasks().add(templateSubtask);
             }
         }
@@ -175,7 +196,12 @@ public class TemplateService {
      */
     private TemplateResponse convertToResponse(TaskTemplate template) {
         List<TemplateSubtaskDTO> subtaskDTOs = template.getTemplateSubtasks().stream()
-                .map(ts -> new TemplateSubtaskDTO(ts.getSubtaskNumber(), ts.getPlannedPoints()))
+                .map(ts -> {
+                    List<Long> tagIds = ts.getTags().stream()
+                            .map(SubtaskTag::getId)
+                            .collect(Collectors.toList());
+                    return new TemplateSubtaskDTO(ts.getSubtaskNumber(), ts.getPlannedPoints(), tagIds);
+                })
                 .sorted((a, b) -> a.getSubtaskNumber().compareTo(b.getSubtaskNumber()))
                 .collect(Collectors.toList());
 
