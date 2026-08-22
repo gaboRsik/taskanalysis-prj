@@ -158,6 +158,18 @@
                   {{ subtask.actualPoints || 0 }}/{{ subtask.plannedPoints || 0 }}
                 </span>
               </div>
+
+              <!-- Tags -->
+              <div class="subtask-tags-mini" *ngIf="subtask.tags && subtask.tags.length > 0">
+                <span
+                  *ngFor="let tag of subtask.tags"
+                  class="tag-chip-mini"
+                  [style.background-color]="tag.color"
+                  [title]="tag.isGlobal ? 'Global tag' : 'Personal tag'"
+                >
+                  {{ tag.name }}
+                </span>
+              </div>
             </div>
           </div>
         </div>

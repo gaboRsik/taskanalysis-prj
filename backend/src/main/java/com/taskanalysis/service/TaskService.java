@@ -12,7 +12,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -190,8 +193,11 @@ public class TaskService {
             response.setCategoryName(task.getCategory().getName());
         }
 
+        List<Long> subtaskIds = subtasks.stream().map(Subtask::getId).collect(Collectors.toList());
+        Map<Long, List<SubtaskTagDTO>> tagsBySubtaskId = loadTagsBySubtaskId(subtaskIds);
+
         List<SubtaskResponse> subtaskResponses = subtasks.stream()
-                .map(this::mapSubtaskToResponse)
+                .map(subtask -> mapSubtaskToResponse(subtask, tagsBySubtaskId.getOrDefault(subtask.getId(), Collections.emptyList())))
                 .collect(Collectors.toList());
         response.setSubtasks(subtaskResponses);
 
@@ -222,7 +228,36 @@ public class TaskService {
         return response;
     }
 
-    private SubtaskResponse mapSubtaskToResponse(Subtask subtask) {
+    /**
+     * Batch-load tags for a set of subtasks in a single query, keyed by subtask ID.
+     * Avoids per-subtask lazy-loading of the @ManyToMany tags collection.
+     */
+    private Map<Long, List<SubtaskTagDTO>> loadTagsBySubtaskId(List<Long> subtaskIds) {
+        if (subtaskIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Map<Long, List<SubtaskTagDTO>> tagsBySubtaskId = new HashMap<>();
+        for (Object[] row : subtaskRepository.findTagsForSubtaskIds(subtaskIds)) {
+            Long subtaskId = (Long) row[0];
+            SubtaskTag tag = (SubtaskTag) row[1];
+
+            SubtaskTagDTO tagDTO = SubtaskTagDTO.builder()
+                    .id(tag.getId())
+                    .name(tag.getName())
+                    .color(tag.getColor())
+                    .isGlobal(tag.getIsGlobal())
+                    .userId(tag.getUser() != null ? tag.getUser().getId() : null)
+                    .createdById(tag.getCreatedBy() != null ? tag.getCreatedBy().getId() : null)
+                    .createdAt(tag.getCreatedAt())
+                    .build();
+
+            tagsBySubtaskId.computeIfAbsent(subtaskId, id -> new ArrayList<>()).add(tagDTO);
+        }
+        return tagsBySubtaskId;
+    }
+
+    private SubtaskResponse mapSubtaskToResponse(Subtask subtask, List<SubtaskTagDTO> tags) {
         List<TimeEntry> timeEntries = timeEntryRepository.findBySubtaskId(subtask.getId());
         long totalSeconds = timeEntries.stream()
                 .filter(entry -> entry.getDurationSeconds() != null)
@@ -249,21 +284,7 @@ public class TaskService {
         response.setEfficiencyVariancePercent(subtask.getEfficiencyVariancePercent());
         response.setTimeVariancePercent(subtask.getTimeVariancePercent());
 
-        // Map tags to DTOs
-        if (subtask.getTags() != null && !subtask.getTags().isEmpty()) {
-            List<SubtaskTagDTO> tagDTOs = subtask.getTags().stream()
-                    .map(tag -> SubtaskTagDTO.builder()
-                            .id(tag.getId())
-                            .name(tag.getName())
-                            .color(tag.getColor())
-                            .isGlobal(tag.getIsGlobal())
-                            .userId(tag.getUser() != null ? tag.getUser().getId() : null)
-                            .createdById(tag.getCreatedBy() != null ? tag.getCreatedBy().getId() : null)
-                            .createdAt(tag.getCreatedAt())
-                            .build())
-                    .collect(Collectors.toList());
-            response.setTags(tagDTOs);
-        }
+        response.setTags(tags);
 
         return response;
     }
