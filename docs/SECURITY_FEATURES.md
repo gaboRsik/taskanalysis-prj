@@ -19,7 +19,7 @@ Az alkalmazás biztonsági rétege többszintű védelmet biztosít a felhaszná
 
 **Limit:** 100 request / perc / IP cím
 
-**Érintett endpoint-ok:** Minden `/api/**` útvonal
+**Érintett endpoint-ok:** Minden `/api/**` útvonal, kivéve az `/api/actuator/**` végpontokat
 
 **Válasz rate limit esetén:**
 ```http
@@ -63,7 +63,7 @@ Retry-After: 60
 ### Implementáció:
 - **Algorithm:** Token Bucket (Bucket4j)
 - **Storage:** In-memory cache (Caffeine)
-- **IP Detection:** X-Forwarded-For header támogatás (proxy/load balancer-ekhez)
+- **IP Detection:** az `X-Real-IP` header (az Nginx a `$remote_addr` értékére állítja), ennek hiányában a kapcsolat címe. Az `X-Forwarded-For` headert nem vesszük figyelembe, mert a kliens hamisíthatja.
 
 ---
 
