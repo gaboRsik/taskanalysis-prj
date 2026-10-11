@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.util.UrlPathHelper;
 
 /**
  * Interceptor to enforce rate limiting on API requests
@@ -21,10 +22,12 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String requestURI = request.getRequestURI();
+        // Path without the servlet context path (/api)
+        String path = UrlPathHelper.defaultInstance.getPathWithinApplication(request);
         String clientIp = getClientIP(request);
-        
+
         // Apply stricter rate limiting for auth endpoints
-        if (requestURI.contains("/api/auth/login") || requestURI.contains("/api/auth/register")) {
+        if (path.equals("/auth/login") || path.equals("/auth/register")) {
             if (!rateLimitService.tryConsumeAuth(clientIp)) {
                 long retryAfter = rateLimitService.getSecondsUntilRefill("auth:" + clientIp);
                 log.warn("Rate limit exceeded for auth endpoint. IP: {}, URI: {}", clientIp, requestURI);
@@ -50,14 +53,10 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
     /**
      * Extract client IP address from request
-     * Handles X-Forwarded-For header (for proxy/load balancer scenarios)
+     * Uses X-Real-IP (set by Nginx to $remote_addr), falling back to the connection address.
+     * X-Forwarded-For is ignored because its first entry is client-controlled and spoofable.
      */
     private String getClientIP(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-            return xForwardedFor.split(",")[0].trim();
-        }
-        
         String xRealIp = request.getHeader("X-Real-IP");
         if (xRealIp != null && !xRealIp.isEmpty()) {
             return xRealIp;
