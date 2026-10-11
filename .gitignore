@@ -115,3 +115,7 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+
+# Claude Code personal files
+.claude/settings.local.json
+CLAUDE.local.md
