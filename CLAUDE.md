@@ -65,7 +65,3 @@ A területenkénti részletes szabályok a `.claude/rules/` mappában vannak, é
 - A `docs/` funkcióleírásai (`*_FEATURE.md`, `*_GUIDE.md`, `TASK_STATUS_MANAGEMENT.md`, `SECURITY_FEATURES.md`) megbízható források az adott funkcióhoz.
 - A `docs/architecture.md` és a `docs/prd.md` az eredeti BMAD tervezési dokumentum, és ELAVULT: Angular Materialt, AWS RDS-t, egyetlen JAR-os telepítést és csak 5 táblát említ. Ha ellentmond a kódnak vagy ennek a fájlnak, a kód és ez a fájl az irányadó.
 - A `.bmad/` a BMAD tervezési keretrendszer, nem alkalmazáskód.
-
-## Ismert hibák
-
-- A `WebConfig` a rate limit és a request logging interceptort, valamint a CORS mappinget `/api/**` mintára regisztrálja, a `SecurityConfig` pedig az `/api/actuator/health` útvonalat engedi. Az `/api` context path miatt ezek a minták valószínűleg soha nem illeszkednek. Ezt tudatosan javítsd, a működést bizonyító teszttel, ne egy másik változtatás mellékhatásaként.

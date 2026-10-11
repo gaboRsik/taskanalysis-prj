@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Fixed
+- Rate limiting and request logging interceptors never ran because their path patterns included the `/api` context path; they now apply to all endpoints except `/actuator/**`
+- `/api/actuator/health` is reachable without authentication again (Docker healthcheck no longer gets 403)
+- Rate limit client IP now comes from `X-Real-IP` (set by Nginx) or the remote address; the spoofable `X-Forwarded-For` header is ignored
+- Removed the ineffective CORS mapping from `WebConfig` (CORS is configured in `SecurityConfig`)
+
+---
+
 ## [1.1.0] - 2026-03-01
 
 ### Added - Security Hardening Phase 🔒

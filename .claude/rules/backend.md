@@ -17,7 +17,7 @@ paths:
 
 ## `/api` context path
 - `server.servlet.context-path=/api`. A controllerek az előtag NÉLKÜL mappelnek (pl. `@RequestMapping("/tasks")`).
-- A Spring Security matcherek, az MVC interceptor minták és a CORS mappingek szintén a context pathhoz képest illeszkednek, ezért bennük soha ne írj `/api/...`-t. A `SecurityConfig` és a `WebConfig` jelenleg `/api/` mintákat tartalmaz: ezeket feltételezett hibának tekintsd, ne mintának.
+- A Spring Security matcherek, az MVC interceptor minták és a CORS mappingek szintén a context pathhoz képest illeszkednek, ezért bennük soha ne írj `/api/...`-t.
 
 ## Adatbázis (Flyway)
 - A sémát a Flyway kezeli: `src/main/resources/db/migration/V<n>__Leiras.sql`, `ddl-auto=none`.
