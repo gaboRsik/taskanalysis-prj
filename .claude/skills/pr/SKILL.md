@@ -19,7 +19,11 @@ A felhasználó által adott leírás (ha van): $ARGUMENTS
 ## 2. Ellenőrzés
 - Backend változásnál futtasd a `mvn test` parancsot a `backend/` mappában.
 - Frontend változásnál futtasd az `npm run build` parancsot a `frontend/` mappában.
-- Ha bármelyik elbukik, ne menj tovább: javítsd ki, vagy jelezd a felhasználónak.
+- Jegyezd fel az eredményt: hány teszt futott, hány sikeres, és a bukott tesztek nevét.
+- Ha bukott teszt van, döntsd el, hogy a mostani változás okozta-e (pl. `git stash` után a `main` ágon is bukik-e).
+  - Ha a mostani változás okozta: ne menj tovább, javítsd ki.
+  - Ha korábbról megvolt: továbbléphetsz, de a PR leírásában és a merge kérdésnél jelezd (lásd 5. lépés).
+- Ha a build elbukik, ne menj tovább: javítsd ki, vagy jelezd a felhasználónak.
 
 ## 3. Commit
 - Logikai egységenként commitolj, Conventional Commits formátumban, angolul (`feat: ...`, `fix: ...`).
@@ -39,6 +43,7 @@ Mit és miért változtattunk (1-3 mondat).
 
 ## Tesztelés
 - Lefuttatott parancsok és eredményük (pl. `mvn test`: 12 teszt, mind sikeres)
+- Bukott tesztek, ha vannak: név, és hogy a mostani változás okozta-e vagy korábbról megvolt
 - Kézi ellenőrzés lépései, ha szükséges
 
 ## Kockázatok / figyelendő
@@ -48,11 +53,23 @@ Mit és miért változtattunk (1-3 mondat).
 - Ha a repóban van CI (`.github/workflows/`), futtasd a `gh pr checks` parancsot, és add meg az eredményét.
 
 ## 5. Az egyetlen kérdés: merge
-Röviden foglald össze magyarul a PR linkjét, a változásokat és a tesztek eredményét, majd kérdezd meg:
+A kérdés előtt MINDIG írd ki magyarul, ebben a sorrendben:
 
-> **Mergeljem a PR-t a main ágra?**
+1. **A PR linkje** és **a változások átnézésére szolgáló link**: `<PR URL>/files` („Files changed” fül). Kérd meg a felhasználót, hogy a merge előtt nézze át.
+2. **Rövid összefoglaló** a változásokról (2-4 pont).
+3. **Tesztek eredménye** (pl. `mvn test`: 42 teszt, 42 sikeres).
+4. **Figyelmeztetés, ha van bukott teszt vagy build hiba.** Ilyenkor a kérdés előtt jól láthatóan, külön blokkban írd ki:
+
+> ⚠️ **FIGYELEM: piros tesztek vannak!**
+> - `<TesztOsztály#metódus>`: a mostani változás okozta / már korábban is bukott
+> - Ha merge-ölsz, ezek a hibák a main ágon maradnak.
+
+Csak ezek után kérdezd meg:
+
+> **Átnézted a változásokat a Files changed fülön? Mergeljem a PR-t a main ágra?**
 
 - Csak kifejezett igen válasz esetén mergelj: `gh pr merge <szám> --squash --delete-branch`, utána `git switch main` és `git pull`.
+- Ha piros teszt van, és azt a mostani változás okozta, ne ajánld fel a merge-et: előbb javítsd ki.
 - Ha a válasz nem vagy később, hagyd nyitva a PR-t, és mondd meg, hogyan lehet később mergelni.
 
 ## Tilos
