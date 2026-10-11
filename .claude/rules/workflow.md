@@ -18,5 +18,7 @@
 - Ha a változtatás a `docs/`, a `README.md` vagy a `CHANGELOG.md` által leírt működést érinti, ugyanabban a változtatásban frissítsd azt a fájlt is.
 
 ## Git
-- Csak kérésre commitolj. A commit üzenet Conventional Commits formátumú és angol nyelvű: `feat: ...`, `fix: ...`, `docs: ...`, `refactor: ...`, `test: ...`, `chore: ...`.
-- Egy commit egy logikai változtatást tartalmazzon.
+- Commit üzenet: Conventional Commits formátum, angolul (`feat: ...`, `fix: ...`, `docs: ...`, `refactor: ...`, `test: ...`, `chore: ...`). Egy commit egy logikai változtatást tartalmazzon.
+- **Nagyobb fejlesztésnél** (új funkció, viselkedést változtató hibajavítás, Flyway migráció, új függőség, vagy 3-nál több fájlt érintő módosítás) a munka végén kérdezés nélkül futtasd végig a `pr` skillt: feature ág, ellenőrzés, commit, push, PR a `main` ágra. A felhasználótól csak azt kérdezd meg, hogy mergeld-e.
+- Kisebb változtatásnál (elírás, egy-két soros javítás, dokumentáció) csak kérésre commitolj.
+- Soha ne pusholj közvetlenül a `main` ágra, ne használj force pusht, és ne mergelj kifejezett jóváhagyás nélkül.
