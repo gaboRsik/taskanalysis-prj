@@ -5,12 +5,10 @@ services:
     container_name: taskanalysis-mysql-prod
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password_change_me}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?hiányzik a .env-ből}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-taskanalysis}
       MYSQL_USER: ${MYSQL_USER:-taskanalysis_user}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-taskanalysis_password_change_me}
-    ports:
-      - "3306:3306"
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?hiányzik a .env-ből}
     volumes:
       - mysql_data_prod:/var/lib/mysql
     # Memory optimization for t3.micro
@@ -24,7 +22,7 @@ services:
     networks:
       - taskanalysis-network-prod
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root_password_change_me}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:?hiányzik a .env-ből}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -37,16 +35,14 @@ services:
       dockerfile: Dockerfile
     container_name: taskanalysis-backend-prod
     restart: unless-stopped
-    ports:
-      - "8080:8080"
     environment:
       # Database configuration
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-taskanalysis}?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-taskanalysis_user}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-taskanalysis_password_change_me}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:?hiányzik a .env-ből}
       
       # JWT configuration
-      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-this-in-production-min-256-bits-required}
+      JWT_SECRET: ${JWT_SECRET:?hiányzik a .env-ből}
       JWT_ACCESS_TOKEN_EXPIRATION: ${JWT_ACCESS_TOKEN_EXPIRATION:-3600000}
       JWT_REFRESH_TOKEN_EXPIRATION: ${JWT_REFRESH_TOKEN_EXPIRATION:-86400000}
       
@@ -54,7 +50,7 @@ services:
       SPRING_MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
       SPRING_MAIL_PORT: ${MAIL_PORT:-587}
       SPRING_MAIL_USERNAME: ${MAIL_USERNAME:-your-email@gmail.com}
-      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD:-your-app-password}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD:?hiányzik a .env-ből}
       APP_MAIL_FROM: ${MAIL_FROM:-Task Analysis <noreply@taskanalysis.com>}
       
       # CORS configuration
