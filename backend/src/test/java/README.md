@@ -52,8 +52,48 @@ Ez a package tartalmazza a biztonsági funkciók unit tesztjeit.
 - ✅ Seconds until refill számítás
 - ✅ Pontosan 100 request limit
 - ✅ Pontosan 5 auth request limit
+- ✅ Auth kulcs refill ideje az auth bucketből
+- ✅ Jelszó-visszaállítási limit (5/15 perc)
+- ✅ Jelszó-visszaállítási és auth limitek függetlensége
+- ✅ Jelszó-visszaállítási limit null/empty key kezelése
 
-**Test Count:** 9 test methods
+**Test Count:** 14 test methods
+
+### 4. ClientIpResolverTest
+**Tesztelt osztály:** `ClientIpResolver`
+
+**Test Cases:**
+- ✅ `X-Real-IP` elsőbbsége
+- ✅ Hiányzó vagy üres `X-Real-IP` esetén a kapcsolat címe
+- ✅ `X-Forwarded-For` figyelmen kívül hagyása
+
+**Test Count:** 4 test methods
+
+### 5. RateLimitInterceptorTest
+**Tesztelt osztály:** `RateLimitInterceptor`
+
+**Test Cases:**
+- ✅ Az általános limit magyar üzenete és a várakozási idő
+
+**Test Count:** 1 test method
+
+### 6. RequestLoggingInterceptorTest
+**Tesztelt osztály:** `RequestLoggingInterceptor`
+
+**Test Cases:**
+- ✅ Hamis `X-Forwarded-For` nem kerül a naplózott IP-be
+
+**Test Count:** 1 test method
+
+### 7. PathPatternSecurityTest
+**Tesztelt osztályok:** `SecurityConfig`, `RateLimitInterceptor`, `AuthController` (`@WebMvcTest`)
+
+**Test Cases:**
+- ✅ Auth 429 pozitív `Retry-After` értékkel és magyar üzenettel
+- ✅ A 6. forgot-password kérés 429, a reset-password közös kerettel
+- ✅ A jelszó-visszaállítási keret kimerülése nem blokkolja a bejelentkezést
+
+**Test Count:** 8 test methods
 
 ## Running Tests
 
@@ -95,11 +135,11 @@ mvn test
 [INFO] Running com.taskanalysis.security.LoginAttemptServiceTest
 [INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0
 [INFO] Running com.taskanalysis.security.RateLimitServiceTest
-[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0
 [INFO] 
 [INFO] Results:
 [INFO] 
-[INFO] Tests run: 29, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 34, Failures: 0, Errors: 0, Skipped: 0
 ```
 
 ## Test Dependencies

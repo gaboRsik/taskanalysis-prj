@@ -408,8 +408,8 @@ Production-ben minden kommunikáció HTTPS-en keresztül történik:
 https://tasks.gaborsiknet.hu/reset-password/token
 ```
 
-### 5. Rate Limiting (Future Enhancement)
-**Javaslat:** Korlátozd a forgot-password kérések számát IP címenként (pl. 5 kérés / 15 perc).
+### 5. Rate Limiting
+A `forgot-password` és a `reset-password` végpont közös keretből fogyaszt: 5 kérés / 15 perc / IP. Túllépéskor a válasz 429 és `Retry-After` fejléc (lásd `SECURITY_FEATURES.md`).
 
 ---
 
@@ -665,12 +665,7 @@ Error: Password must contain at least one special character
 
 ## 📈 Future Enhancements
 
-### 1. Rate Limiting
-```java
-// IP-based rate limiting
-@RateLimit(maxRequests = 5, duration = 15, unit = TimeUnit.MINUTES)
-public MessageResponse forgotPassword(ForgotPasswordRequest request) { ... }
-```
+### 1. Rate Limiting ✅ Megvalósítva (lásd a 5. Rate Limiting pontot)
 
 ### 2. Email HTML Template
 - Szebb, brand-aligned email design

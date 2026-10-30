@@ -18,11 +18,17 @@ import java.time.Duration;
 @Slf4j
 public class RateLimitService {
 
+    static final String AUTH_KEY_PREFIX = "auth:";
+    static final String PASSWORD_RESET_KEY_PREFIX = "password-reset:";
+
     // Cache to store buckets for each IP/user (general API endpoints)
     private final LoadingCache<String, Bucket> cache;
     
     // Cache to store buckets for authentication endpoints (stricter limits)
     private final LoadingCache<String, Bucket> authCache;
+
+    // Cache to store buckets for password reset endpoints (strictest limits)
+    private final LoadingCache<String, Bucket> passwordResetCache;
 
     public RateLimitService() {
         this.cache = Caffeine.newBuilder()
@@ -34,6 +40,11 @@ public class RateLimitService {
                 .maximumSize(10000)
                 .expireAfterAccess(Duration.ofHours(1))
                 .build(this::createAuthBucket);
+
+        this.passwordResetCache = Caffeine.newBuilder()
+                .maximumSize(10000)
+                .expireAfterAccess(Duration.ofHours(1))
+                .build(this::createPasswordResetBucket);
     }
 
     /**
@@ -53,6 +64,17 @@ public class RateLimitService {
      */
     private Bucket createAuthBucket(String key) {
         Bandwidth limit = Bandwidth.classic(5, Refill.intervally(5, Duration.ofMinutes(1)));
+        return Bucket.builder()
+                .addLimit(limit)
+                .build();
+    }
+
+    /**
+     * Create a bucket for password reset endpoints (strictest)
+     * 5 requests per 15 minutes
+     */
+    private Bucket createPasswordResetBucket(String key) {
+        Bandwidth limit = Bandwidth.classic(5, Refill.intervally(5, Duration.ofMinutes(15)));
         return Bucket.builder()
                 .addLimit(limit)
                 .build();
@@ -84,7 +106,7 @@ public class RateLimitService {
             return false;
         }
         
-        String authKey = "auth:" + key;
+        String authKey = AUTH_KEY_PREFIX + key;
         Bucket bucket = authCache.get(authKey);
         boolean consumed = bucket.tryConsume(1);
         
@@ -96,16 +118,46 @@ public class RateLimitService {
     }
 
     /**
-     * Get the number of seconds until the bucket is refilled
+     * Check if request is allowed for password reset endpoints
      * @param key IP address or user identifier
-     * @return seconds until next token is available
+     * @return true if request is allowed, false otherwise
+     */
+    public boolean tryConsumePasswordReset(String key) {
+        if (key == null || key.isEmpty()) {
+            log.warn("Password reset rate limit check attempted with null or empty key");
+            return false;
+        }
+
+        Bucket bucket = passwordResetCache.get(PASSWORD_RESET_KEY_PREFIX + key);
+        boolean consumed = bucket.tryConsume(1);
+
+        if (!consumed) {
+            log.warn("Rate limit exceeded for password reset endpoint. Key: {}", key);
+        }
+
+        return consumed;
+    }
+
+    /**
+     * Get the number of seconds until the bucket is refilled
+     * @param key IP address or user identifier, with the limit's key prefix for auth and password reset buckets
+     * @return seconds until next token is available, rounded up so a blocked request never gets 0
      */
     public long getSecondsUntilRefill(String key) {
         if (key == null || key.isEmpty()) {
             return 0;
         }
         
-        Bucket bucket = cache.get(key);
-        return bucket.estimateAbilityToConsume(1).getNanosToWaitForRefill() / 1_000_000_000;
+        Bucket bucket;
+        if (key.startsWith(AUTH_KEY_PREFIX)) {
+            bucket = authCache.get(key);
+        } else if (key.startsWith(PASSWORD_RESET_KEY_PREFIX)) {
+            bucket = passwordResetCache.get(key);
+        } else {
+            bucket = cache.get(key);
+        }
+
+        long nanosToWait = bucket.estimateAbilityToConsume(1).getNanosToWaitForRefill();
+        return (nanosToWait + 999_999_999) / 1_000_000_000;
     }
 }
