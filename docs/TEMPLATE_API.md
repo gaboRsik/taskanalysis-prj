@@ -422,18 +422,21 @@ Content-Type: application/json
   "timestamp": "2026-03-03T10:15:30",
   "status": 404,
   "error": "Not Found",
-  "message": "Template not found with id: 999",
+  "message": "Nem található sablon ezzel az azonosítóval: 999",
   "path": "/api/templates/999"
 }
 ```
 
 **Name Conflict (400):**
+
+Akkor is ez a válasz, ha a név nem változik, de a célkategóriában már van ilyen nevű sablon.
+
 ```json
 {
   "timestamp": "2026-03-03T10:15:30",
   "status": 400,
-  "error": "Bad Request",
-  "message": "A template with name 'Python REST API Endpoint' already exists in this category",
+  "error": "Business Rule Violation",
+  "message": "Már létezik 'Python REST API Endpoint' nevű sablon ebben a kategóriában",
   "path": "/api/templates/1"
 }
 ```

@@ -39,6 +39,11 @@ public interface TaskTemplateRepository extends JpaRepository<TaskTemplate, Long
     boolean existsByUserAndCategoryAndName(User user, Category category, String name);
 
     /**
+     * Check if another template (excluding the given ID) has this name for a user in a specific category
+     */
+    boolean existsByUserAndCategoryAndNameAndIdNot(User user, Category category, String name, Long id);
+
+    /**
      * Delete a template by ID and user (ensures user can only delete their own templates)
      */
     void deleteByIdAndUser(Long id, User user);

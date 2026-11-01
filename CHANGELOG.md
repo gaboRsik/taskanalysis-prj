@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Retry-After` on auth 429 responses was always 0 because the refill time was read from the wrong bucket; it is now correct and rounded up
 - Request logs now use the same client IP as rate limiting (`X-Real-IP`, then remote address), so `X-Forwarded-For` can no longer spoof the logged IP
 - `429` response messages are now in Hungarian
+- Moving a template to a category that already has a template with the same name now returns a `400` conflict message instead of failing on the database unique constraint
+- Changing only the case or accents of a template name in the same category no longer fails with a false name conflict
+- `PUT /templates/{id}` business and not-found error messages are now in Hungarian (validation messages are unchanged)
 
 ### Security
 - `POST /auth/forgot-password` and `POST /auth/reset-password` share a strict limit of 5 requests / 15 minutes / IP
