@@ -33,7 +33,7 @@ A felhasználó által adott leírás (ha van): $ARGUMENTS
   - **MEHET:** folytasd.
 - A javítatlanul hagyott apróságokat bármely ítéletnél írd be a PR leírás „Code review” részébe.
 - A reviewer megállapításait a kulcspontoknál ellenőrizd a kódban, mielőtt javítasz: a subagent is tévedhet. A tévesnek ítélt találatot ne javítsd, hanem indoklással írd be a PR leírás „Code review” részébe. Ha így nem marad valós blokkoló pont, továbbléphetsz, de az elvetett blokkoló pontot és az eredeti ítéletet a merge kérdésnél is jelezd.
-- Minden javítás után futtasd újra a 2. lépés ellenőrzéseit és a reviewert, hogy a PR-ba és a merge kérdésbe a végső állapot eredménye kerüljön. Újrafuttatáskor add át a reviewernek a már elvetett találatokat az indoklással együtt. Ezeket csak akkor jelentse újra, ha az indoklást hibásnak tartja.
+- Minden javítás után futtasd újra a 2. lépés ellenőrzéseit és a reviewert, hogy a PR-ba és a merge kérdésbe a végső állapot eredménye kerüljön. Újrafuttatáskor add át a reviewernek a már elvetett találatokat az indoklással együtt. Ezeket csak akkor jelentse újra, ha az indoklást hibásnak tartja. Csak a tévesnek ítélt találatokat adhatod át így. A „Későbbre” hagyott vagy javítatlan pontok elhallgatását ne kérd: ezeket a reviewer jelentse újra, és a végső ítéletet úgy add tovább, ahogy a reviewer kimondta (például JAVÍTANDÓ, a nyitott pontokkal).
 - A reviewert legfeljebb kétszer futtasd újra. Ezután már ne javíts kódot:
   - Ha a végső ítélet JAVÍTANDÓ, a nyitott pontokat jelezd a PR leírásában és a merge kérdésnél.
   - Ha a végső ítélet BLOKKOLÓ, és marad valós blokkoló pont, állj meg, és kérdezd meg a felhasználót. Ha a továbblépés mellett dönt, a BLOKKOLÓ ítéletet és a nyitott pontokat jelezd a PR leírásában és a merge kérdésnél is.
