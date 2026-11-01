@@ -7,11 +7,14 @@ import com.taskanalysis.entity.*;
 import com.taskanalysis.exception.BusinessException;
 import com.taskanalysis.exception.ResourceNotFoundException;
 import com.taskanalysis.repository.CategoryRepository;
+import com.taskanalysis.repository.SubtaskTagRepository;
 import com.taskanalysis.repository.TaskTemplateRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -37,6 +40,12 @@ class TemplateServiceTest {
 
     @Mock
     private CategoryRepository categoryRepository;
+
+    @Mock
+    private EntityManager entityManager;
+
+    @Mock
+    private SubtaskTagRepository subtaskTagRepository;
 
     @InjectMocks
     private TemplateService templateService;
@@ -309,27 +318,54 @@ class TemplateServiceTest {
     @DisplayName("Should update template successfully")
     void testUpdateTemplate() {
         // Arrange
-        when(templateRepository.findByIdAndUser(1L, testUser)).thenReturn(Optional.of(testTemplate));
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(testCategory));
-        // Note: existsByUserAndCategoryAndName is not stubbed because name doesn't change
+        testRequest.setName("Updated Endpoint");
+        testRequest.setDescription("Updated description");
+        testRequest.setCategoryId(2L);
+        testRequest.setSubtaskCount(1);
+        testRequest.setTaskCount(5);
+        testRequest.setTemplateSubtasks(List.of(new TemplateSubtaskDTO(1, 8, null)));
+        when(templateRepository.findByIdAndUserWithSubtasks(1L, testUser)).thenReturn(Optional.of(testTemplate));
+        when(categoryRepository.findById(2L)).thenReturn(Optional.of(otherCategory));
+        when(templateRepository.existsByUserAndCategoryAndName(testUser, otherCategory, "Updated Endpoint")).thenReturn(false);
         when(templateRepository.save(any(TaskTemplate.class))).thenReturn(testTemplate);
+
+        // Capture the collection size at flush time: the flush is what deletes the old subtasks
+        List<Integer> sizeAtFlush = new ArrayList<>();
+        doAnswer(invocation -> {
+            sizeAtFlush.add(testTemplate.getTemplateSubtasks().size());
+            return null;
+        }).when(entityManager).flush();
 
         // Act
         TemplateResponse result = templateService.updateTemplate(1L, testRequest, testUser);
 
         // Assert
         assertNotNull(result);
-        assertEquals("API Endpoint", result.getName());
-        verify(templateRepository).findByIdAndUser(1L, testUser);
-        verify(categoryRepository).findById(1L);
-        verify(templateRepository).save(any(TaskTemplate.class));
+        assertEquals("Updated Endpoint", result.getName());
+        assertEquals("Updated description", result.getDescription());
+        assertEquals(2L, result.getCategoryId());
+        assertEquals(1, result.getSubtaskCount());
+        assertEquals(5, result.getTaskCount());
+        assertEquals(1, result.getTemplateSubtasks().size());
+        assertEquals(1, result.getTemplateSubtasks().get(0).getSubtaskNumber());
+        assertEquals(8, result.getTemplateSubtasks().get(0).getPlannedPoints());
+        assertSame(testTemplate, testTemplate.getTemplateSubtasks().get(0).getTemplate());
+        verify(templateRepository).findByIdAndUserWithSubtasks(1L, testUser);
+        verify(categoryRepository).findById(2L);
+        verify(templateRepository).existsByUserAndCategoryAndName(testUser, otherCategory, "Updated Endpoint");
+
+        // Old subtasks must be flushed out before the new ones are added (unique_template_subtask)
+        assertEquals(List.of(0), sizeAtFlush);
+        InOrder inOrder = inOrder(entityManager, templateRepository);
+        inOrder.verify(entityManager).flush();
+        inOrder.verify(templateRepository).save(any(TaskTemplate.class));
     }
 
     @Test
     @DisplayName("Should throw ResourceNotFoundException when updating non-existing template")
     void testUpdateTemplateNotFound() {
         // Arrange
-        when(templateRepository.findByIdAndUser(999L, testUser)).thenReturn(Optional.empty());
+        when(templateRepository.findByIdAndUserWithSubtasks(999L, testUser)).thenReturn(Optional.empty());
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(
@@ -338,7 +374,8 @@ class TemplateServiceTest {
         );
         
         assertTrue(exception.getMessage().contains("Template not found with id: 999"));
-        verify(templateRepository).findByIdAndUser(999L, testUser);
+        verify(templateRepository).findByIdAndUserWithSubtasks(999L, testUser);
+        verify(entityManager, never()).flush();
         verify(templateRepository, never()).save(any());
     }
 
@@ -347,7 +384,7 @@ class TemplateServiceTest {
     void testUpdateTemplateNameConflict() {
         // Arrange
         testRequest.setName("Conflicting Name");
-        when(templateRepository.findByIdAndUser(1L, testUser)).thenReturn(Optional.of(testTemplate));
+        when(templateRepository.findByIdAndUserWithSubtasks(1L, testUser)).thenReturn(Optional.of(testTemplate));
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(testCategory));
         when(templateRepository.existsByUserAndCategoryAndName(testUser, testCategory, "Conflicting Name")).thenReturn(true);
 
@@ -358,9 +395,10 @@ class TemplateServiceTest {
         );
         
         assertTrue(exception.getMessage().contains("A template with name 'Conflicting Name' already exists in this category"));
-        verify(templateRepository).findByIdAndUser(1L, testUser);
+        verify(templateRepository).findByIdAndUserWithSubtasks(1L, testUser);
         verify(categoryRepository).findById(1L);
         verify(templateRepository).existsByUserAndCategoryAndName(testUser, testCategory, "Conflicting Name");
+        verify(entityManager, never()).flush();
         verify(templateRepository, never()).save(any());
     }
 
@@ -376,7 +414,7 @@ class TemplateServiceTest {
         otherUserCategory.setUser(otherUser);
         
         testRequest.setCategoryId(3L);
-        when(templateRepository.findByIdAndUser(1L, testUser)).thenReturn(Optional.of(testTemplate));
+        when(templateRepository.findByIdAndUserWithSubtasks(1L, testUser)).thenReturn(Optional.of(testTemplate));
         when(categoryRepository.findById(3L)).thenReturn(Optional.of(otherUserCategory));
 
         // Act & Assert
@@ -386,8 +424,9 @@ class TemplateServiceTest {
         );
         
         assertTrue(exception.getMessage().contains("Category does not belong to the current user"));
-        verify(templateRepository).findByIdAndUser(1L, testUser);
+        verify(templateRepository).findByIdAndUserWithSubtasks(1L, testUser);
         verify(categoryRepository).findById(3L);
+        verify(entityManager, never()).flush();
         verify(templateRepository, never()).save(any());
     }
 
