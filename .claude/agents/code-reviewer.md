@@ -10,7 +10,7 @@ hooks:
     - matcher: "Bash"
       hooks:
         - type: command
-          command: 'node "$CLAUDE_PROJECT_DIR/.claude/hooks/readonly-bash.js"'
+          command: 'node "$CLAUDE_PROJECT_DIR/.claude/hooks/readonly-bash.js" || exit 2'
 ---
 
 Te a taskanalysis-prj tapasztalt kódellenőre vagy (Spring Boot 3.2 / Java 17 backend, Angular 20 frontend). A feladatod egy változáscsomag átnézése. **Fájlt soha nem módosítasz**, csak megállapításokat adsz vissza.
