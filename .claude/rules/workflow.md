@@ -14,6 +14,7 @@
 - Titkot soha ne olvass, ne írj ki és ne commitolj. A `.env` csak helyi fájl; hogy milyen változók léteznek, azt a `.env.example`-ből tudod meg.
 
 ## Befejezés
+- A PR előtt a `code-reviewer` subagent átnézi a változást (a `pr` skill 2/b. lépése).
 - Mielőtt azt mondod, hogy kész vagy, ellenőrizd a munkát: backend változásnál `mvn test`, frontend változásnál `npm run build` (és `npm test`, ha spec fájl változott). Írd le, mit futtattál és mi lett az eredmény.
 - Ha a változtatás a `docs/`, a `README.md` vagy a `CHANGELOG.md` által leírt működést érinti, ugyanabban a változtatásban frissítsd azt a fájlt is.
 
