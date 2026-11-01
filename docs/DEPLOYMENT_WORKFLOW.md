@@ -247,6 +247,8 @@ git log --oneline -5
 # Legutóbbi commit-nak látszania kell a tiédnek
 ```
 
+> **Frissítés előtt:** a `docker-compose.prod.yml` megköveteli a `MYSQL_ROOT_PASSWORD`, `MYSQL_PASSWORD`, `JWT_SECRET` és `MAIL_PASSWORD` változót. Ha valamelyik hiányzik az éles `.env`-ből, minden compose parancs hibával leáll. A MySQL a jelszavakat csak üres volume-nál állítja be: meglévő adatbázisnál a korábbi jelszót kell megadni, vagy a jelszót a MySQL-ben is módosítani kell.
+
 ### 3.3. Docker Rebuild Döntési Fa
 
 **Melyik service-t kell újraépíteni?**
@@ -293,9 +295,9 @@ docker ps
 **Expected output:**
 ```
 CONTAINER ID   IMAGE                         STATUS         PORTS
-abc123def456   taskanalysis-prj_frontend     Up 10 seconds  0.0.0.0:80->80/tcp
-def456ghi789   taskanalysis-prj_backend      Up 2 hours     0.0.0.0:8080->8080/tcp
-ghi789jkl012   mysql:8.0                     Up 2 hours     0.0.0.0:3306->3306/tcp
+abc123def456   taskanalysis-prj_frontend     Up 10 seconds  0.0.0.0:80->80/tcp, 0.0.0.0:443->443/tcp
+def456ghi789   taskanalysis-prj_backend      Up 2 hours     8080/tcp (csak belső hálózat)
+ghi789jkl012   mysql:8.0                     Up 2 hours     3306/tcp (csak belső hálózat)
 ```
 
 ### Stratégia B: Csak Backend Rebuild
@@ -413,7 +415,7 @@ docker-compose -f docker-compose.prod.yml restart [service-name]
 
 ```bash
 # Actuator health endpoint
-curl http://localhost:8080/api/actuator/health
+docker exec taskanalysis-backend-prod curl -f http://localhost:8080/api/actuator/health
 
 # Expected: {"status":"UP"}
 ```
@@ -825,7 +827,7 @@ docker-compose -f docker-compose.prod.yml up -d
 # 7. Verify
 docker ps
 docker logs taskanalysis-backend-prod --tail 30
-curl http://localhost:8080/api/actuator/health
+docker exec taskanalysis-backend-prod curl -f http://localhost:8080/api/actuator/health
 ```
 
 ### Browser Testing

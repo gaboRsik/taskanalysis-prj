@@ -31,7 +31,7 @@ Content-Type: application/json
   "timestamp": "2026-03-01T10:15:30",
   "status": 429,
   "error": "Too Many Requests",
-  "message": "Rate limit exceeded. Please slow down your requests.",
+  "message": "Túl sok kérés. Kis idő múlva újra lehet próbálni.",
   "path": "/api/tasks",
   "retryAfter": 60
 }
@@ -54,16 +54,39 @@ Retry-After: 60
   "timestamp": "2026-03-01T10:15:30",
   "status": 429,
   "error": "Too Many Requests",
-  "message": "Too many authentication attempts. Please try again later.",
+  "message": "Túl sok hitelesítési kísérlet. Kis idő múlva újra lehet próbálni.",
   "path": "/api/auth/login",
   "retryAfter": 60
+}
+```
+
+### Jelszó-visszaállítási Rate Limits (Legszigorúbb)
+
+**Limit:** 5 request / 15 perc / IP cím (a két végpont közös keretből fogyaszt)
+
+**Érintett endpoint-ok:**
+- `POST /api/auth/forgot-password`
+- `POST /api/auth/reset-password`
+
+**Válasz:**
+```http
+HTTP/1.1 429 Too Many Requests
+Retry-After: 900
+
+{
+  "timestamp": "2026-03-01T10:15:30",
+  "status": 429,
+  "error": "Too Many Requests",
+  "message": "Túl sok jelszó-visszaállítási kérés. Kis idő múlva újra lehet próbálni.",
+  "path": "/api/auth/forgot-password",
+  "retryAfter": 900
 }
 ```
 
 ### Implementáció:
 - **Algorithm:** Token Bucket (Bucket4j)
 - **Storage:** In-memory cache (Caffeine)
-- **IP Detection:** az `X-Real-IP` header (az Nginx a `$remote_addr` értékére állítja), ennek hiányában a kapcsolat címe. Az `X-Forwarded-For` headert nem vesszük figyelembe, mert a kliens hamisíthatja.
+- **IP Detection:** az `X-Real-IP` header (az Nginx a `$remote_addr` értékére állítja), ennek hiányában a kapcsolat címe. Az `X-Forwarded-For` headert nem vesszük figyelembe, mert a kliens hamisíthatja. A kérésnaplózás ugyanezt az IP-t használja (`ClientIpResolver`).
 
 ---
 
@@ -301,7 +324,7 @@ interface ErrorResponse {
   "timestamp": "2026-03-01T10:15:30",
   "status": 429,
   "error": "Too Many Requests",
-  "message": "Rate limit exceeded. Please slow down your requests.",
+  "message": "Túl sok kérés. Kis idő múlva újra lehet próbálni.",
   "path": "/api/tasks",
   "retryAfter": 60
 }

@@ -14,6 +14,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `/api/actuator/health` is reachable without authentication again (Docker healthcheck no longer gets 403)
 - Rate limit client IP now comes from `X-Real-IP` (set by Nginx) or the remote address; the spoofable `X-Forwarded-For` header is ignored
 - Removed the ineffective CORS mapping from `WebConfig` (CORS is configured in `SecurityConfig`)
+- `Retry-After` on auth 429 responses was always 0 because the refill time was read from the wrong bucket; it is now correct and rounded up
+- Request logs now use the same client IP as rate limiting (`X-Real-IP`, then remote address), so `X-Forwarded-For` can no longer spoof the logged IP
+- `429` response messages are now in Hungarian
+
+### Security
+- `POST /auth/forgot-password` and `POST /auth/reset-password` share a strict limit of 5 requests / 15 minutes / IP
+- `docker-compose.prod.yml` no longer publishes the MySQL and backend ports
+- `docker-compose.prod.yml` refuses to start when `JWT_SECRET`, `MYSQL_ROOT_PASSWORD`, `MYSQL_PASSWORD` or `MAIL_PASSWORD` is missing, instead of using default values
+
+### Changed
+- Added `.gitattributes` to keep LF line endings in the repository
 
 ---
 

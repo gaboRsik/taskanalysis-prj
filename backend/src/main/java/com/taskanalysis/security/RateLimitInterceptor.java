@@ -24,15 +24,25 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         String requestURI = request.getRequestURI();
         // Path without the servlet context path (/api)
         String path = UrlPathHelper.defaultInstance.getPathWithinApplication(request);
-        String clientIp = getClientIP(request);
+        String clientIp = ClientIpResolver.resolve(request);
 
         // Apply stricter rate limiting for auth endpoints
         if (path.equals("/auth/login") || path.equals("/auth/register")) {
             if (!rateLimitService.tryConsumeAuth(clientIp)) {
-                long retryAfter = rateLimitService.getSecondsUntilRefill("auth:" + clientIp);
+                long retryAfter = rateLimitService.getSecondsUntilRefill(RateLimitService.AUTH_KEY_PREFIX + clientIp);
                 log.warn("Rate limit exceeded for auth endpoint. IP: {}, URI: {}", clientIp, requestURI);
                 throw new RateLimitExceededException(
-                    "Too many authentication attempts. Please try again later.",
+                    "Túl sok hitelesítési kísérlet. Kis idő múlva újra lehet próbálni.",
+                    retryAfter
+                );
+            }
+        } else if (path.equals("/auth/forgot-password") || path.equals("/auth/reset-password")) {
+            // Both endpoints share one budget so alternating between them cannot double it
+            if (!rateLimitService.tryConsumePasswordReset(clientIp)) {
+                long retryAfter = rateLimitService.getSecondsUntilRefill(RateLimitService.PASSWORD_RESET_KEY_PREFIX + clientIp);
+                log.warn("Rate limit exceeded for password reset endpoint. IP: {}, URI: {}", clientIp, requestURI);
+                throw new RateLimitExceededException(
+                    "Túl sok jelszó-visszaállítási kérés. Kis idő múlva újra lehet próbálni.",
                     retryAfter
                 );
             }
@@ -42,26 +52,12 @@ public class RateLimitInterceptor implements HandlerInterceptor {
                 long retryAfter = rateLimitService.getSecondsUntilRefill(clientIp);
                 log.warn("Rate limit exceeded. IP: {}, URI: {}", clientIp, requestURI);
                 throw new RateLimitExceededException(
-                    "Rate limit exceeded. Please slow down your requests.",
+                    "Túl sok kérés. Kis idő múlva újra lehet próbálni.",
                     retryAfter
                 );
             }
         }
         
         return true;
-    }
-
-    /**
-     * Extract client IP address from request
-     * Uses X-Real-IP (set by Nginx to $remote_addr), falling back to the connection address.
-     * X-Forwarded-For is ignored because its first entry is client-controlled and spoofable.
-     */
-    private String getClientIP(HttpServletRequest request) {
-        String xRealIp = request.getHeader("X-Real-IP");
-        if (xRealIp != null && !xRealIp.isEmpty()) {
-            return xRealIp;
-        }
-        
-        return request.getRemoteAddr();
     }
 }

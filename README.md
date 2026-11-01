@@ -91,6 +91,7 @@ Az adatbázis automatikusan létrejön a Flyway migration-ökkel az első indít
 **Rate Limiting:**
 - 100 requests/perc (API)
 - 5 requests/perc (Auth endpoints)
+- 5 requests/15 perc (Jelszó-visszaállítás)
 
 **Account Protection:**
 - 5 sikertelen login után 15 perc lockout
@@ -118,7 +119,7 @@ mvn test
 **Test Coverage:**
 - Password validator tests (11 tests)
 - Login attempt service tests (9 tests)
-- Rate limit service tests (9 tests)
+- Rate limit service tests (13 tests)
 
 Részletek: [Test README](backend/src/test/java/README.md)
 

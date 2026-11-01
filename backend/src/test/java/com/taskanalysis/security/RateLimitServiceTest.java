@@ -150,4 +150,58 @@ class RateLimitServiceTest {
         assertFalse(service.tryConsumeAuth(key), 
             "Auth request 6 should be blocked");
     }
+
+    @Test
+    @DisplayName("Seconds until refill reads the auth bucket for auth keys")
+    void testSecondsUntilRefillForAuthKey() {
+        String key = "192.168.1.100";
+
+        for (int i = 0; i < 5; i++) {
+            service.tryConsumeAuth(key);
+        }
+        assertFalse(service.tryConsumeAuth(key));
+
+        long seconds = service.getSecondsUntilRefill(RateLimitService.AUTH_KEY_PREFIX + key);
+
+        assertTrue(seconds > 0 && seconds <= 60,
+            "Seconds until auth refill should be between 1 and 60, got: " + seconds);
+    }
+
+    @Test
+    @DisplayName("Password reset limit blocks the 6th request for 15 minutes")
+    void testPasswordResetLimit() {
+        String key = "192.168.1.100";
+
+        for (int i = 0; i < 5; i++) {
+            assertTrue(service.tryConsumePasswordReset(key),
+                "Password reset request " + (i + 1) + " should be allowed");
+        }
+        assertFalse(service.tryConsumePasswordReset(key),
+            "Password reset request 6 should be blocked");
+
+        long seconds = service.getSecondsUntilRefill(RateLimitService.PASSWORD_RESET_KEY_PREFIX + key);
+
+        assertTrue(seconds > 60 && seconds <= 900,
+            "Seconds until password reset refill should be above 60 and at most 900, got: " + seconds);
+    }
+
+    @Test
+    @DisplayName("Password reset and auth limits are independent")
+    void testPasswordResetAndAuthLimitsIndependent() {
+        String key = "192.168.1.100";
+
+        for (int i = 0; i < 5; i++) {
+            service.tryConsumePasswordReset(key);
+        }
+
+        assertTrue(service.tryConsumeAuth(key),
+            "Auth limit should be independent from password reset limit");
+    }
+
+    @Test
+    @DisplayName("Password reset limit rejects null and empty keys")
+    void testPasswordResetNullAndEmptyKey() {
+        assertFalse(service.tryConsumePasswordReset(null));
+        assertFalse(service.tryConsumePasswordReset(""));
+    }
 }

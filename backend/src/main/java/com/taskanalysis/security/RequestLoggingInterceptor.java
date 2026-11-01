@@ -24,7 +24,7 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
         MDC.put("requestId", requestId);
         
         // Add client IP to MDC
-        String clientIp = getClientIP(request);
+        String clientIp = ClientIpResolver.resolve(request);
         MDC.put("ip", clientIp);
         
         // Log request details
@@ -62,22 +62,5 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
         
         // Clear MDC
         MDC.clear();
-    }
-
-    /**
-     * Extract client IP address from request
-     */
-    private String getClientIP(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-            return xForwardedFor.split(",")[0].trim();
-        }
-        
-        String xRealIp = request.getHeader("X-Real-IP");
-        if (xRealIp != null && !xRealIp.isEmpty()) {
-            return xRealIp;
-        }
-        
-        return request.getRemoteAddr();
     }
 }

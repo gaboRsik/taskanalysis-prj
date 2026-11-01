@@ -6,7 +6,7 @@
 ### Szükséges eszközök:
 - ✅ AWS Account (Free Tier eligible)
 - ✅ SSH kliens (PowerShell Windows-on)
-- ✅ Domain név (opcionális, de ajánlott)
+- ✅ Domain név (kötelező: az Nginx csak HTTPS-t szolgál ki, tanúsítvánnyal)
 
 ---
 
@@ -49,7 +49,6 @@
        SSH       | TCP | 22   | My IP (a te IP-d)
        HTTP      | TCP | 80   | Anywhere (0.0.0.0/0)
        HTTPS     | TCP | 443  | Anywhere (0.0.0.0/0)
-       Custom TCP| TCP | 8080 | My IP (csak teszteléshez)
        ```
    - **Outbound rules**: Leave as default (All traffic)
 
@@ -171,22 +170,10 @@ sudo sysctl vm.swappiness=10
 echo 'vm.swappiness=10' | sudo tee -a /etc/sysctl.conf
 ```
 
-### 2.6. Nginx telepítése (reverse proxy)
+### 2.6. Certbot telepítése (SSL/HTTPS)
 
 ```bash
-sudo apt install nginx -y
-sudo systemctl enable nginx
-sudo systemctl start nginx
-
-# Ellenőrzés
-sudo systemctl status nginx
-# Active: active (running) - OK!
-```
-
-### 2.7. Certbot telepítése (SSL/HTTPS)
-
-```bash
-sudo apt install certbot python3-certbot-nginx -y
+sudo apt install certbot -y
 ```
 
 ---
@@ -229,6 +216,8 @@ MAIL_PASSWORD=your-gmail-app-password
 CORS_ALLOWED_ORIGINS=http://yourdomain.com,https://yourdomain.com
 ```
 
+**Kötelező változók:** a `MYSQL_ROOT_PASSWORD`, `MYSQL_PASSWORD`, `JWT_SECRET` és `MAIL_PASSWORD` nem kap alapértelmezett értéket. Ha bármelyik hiányzik vagy üres, a `docker-compose` minden parancsa `hiányzik a .env-ből` hibával leáll, és a stack nem indul el.
+
 **Mentés:**
 - `Ctrl + O` (mentés)
 - `Enter`
@@ -242,8 +231,8 @@ chmod 600 .env
 ### 3.3. Docker image-ek build & indítás
 
 ```bash
-# Production verzió indítása
-docker-compose -f docker-compose.prod.yml up -d --build
+# Adatbázis és backend indítása (a frontendhez tanúsítvány kell, lásd 4.3)
+docker-compose -f docker-compose.prod.yml up -d --build mysql backend
 
 # Ez eltarthat 5-10 percig első alkalommal!
 # Logs követése:
@@ -261,17 +250,13 @@ docker-compose -f docker-compose.prod.yml logs -f
 docker ps
 
 # Kimenet (mind RUNNING kell legyen):
-# taskanalysis-frontend-prod   Up   0.0.0.0:80->80/tcp
-# taskanalysis-backend-prod    Up   0.0.0.0:8080->8080/tcp
-# taskanalysis-mysql-prod      Up   0.0.0.0:3306->3306/tcp
+# taskanalysis-backend-prod    Up   8080/tcp
+# taskanalysis-mysql-prod      Up   3306/tcp, 33060/tcp
+# A backend és a MySQL szándékosan nem publikál portot a hostra.
 
-# Backend health check
-curl http://localhost:8080/api/actuator/health
+# Backend health check (a konténeren belül)
+docker exec taskanalysis-backend-prod curl -f http://localhost:8080/api/actuator/health
 # Kimenet: {"status":"UP"}
-
-# Frontend check
-curl http://localhost
-# Kimenet: HTML tartalom
 
 # Memory monitoring
 docker stats --no-stream
@@ -279,11 +264,11 @@ docker stats --no-stream
 
 ---
 
-## 🌐 FÁZIS 4: Domain Beállítás (opcionális, de ajánlott)
+## 🌐 FÁZIS 4: Domain és HTTPS (kötelező)
 
 ### 4.1. DNS konfiguráció (domain registrár-nál)
 
-Ha van domain neved (pl. `mytaskapp.com`):
+A domain neved (pl. `mytaskapp.com`) beállítása:
 
 1. Lépj be a domain szolgáltatódhoz (GoDaddy, Namecheap, stb.)
 2. DNS Management / DNS Settings
@@ -293,7 +278,6 @@ Ha van domain neved (pl. `mytaskapp.com`):
 Type  | Host | Value            | TTL
 ------|------|------------------|------
 A     | @    | YOUR_ELASTIC_IP  | 600
-A     | www  | YOUR_ELASTIC_IP  | 600
 ```
 
 4. Mentés
@@ -304,95 +288,28 @@ A     | www  | YOUR_ELASTIC_IP  | 600
    # Kimenet: YOUR_ELASTIC_IP kell legyen
    ```
 
-### 4.2. Nginx konfiguráció domain-nel
+### 4.2. TLS a frontend konténerben
 
-**Létrehozás:**
-```bash
-sudo nano /etc/nginx/sites-available/taskanalysis
-```
+Az Nginx a `frontend` konténerben fut, ez végzi a TLS-t és továbbítja az `/api/` kéréseket a `backend:8080`-ra (`frontend/nginx.conf`). A hoston nem kell külön Nginx. A backend és a MySQL csak a belső Docker hálózaton érhető el, a hoston sem publikálnak portot.
 
-**Tartalom (másold be):**
-```nginx
-server {
-    listen 80;
-    server_name yourdomain.com www.yourdomain.com;
-
-    # Security headers
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-
-    # Frontend (Angular)
-    location / {
-        proxy_pass http://localhost:80;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-    }
-
-    # Backend API
-    location /api/ {
-        proxy_pass http://localhost:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_read_timeout 300s;
-        proxy_connect_timeout 75s;
-    }
-}
-```
-
-**⚠️ Cseréld le `yourdomain.com`-ot a saját domain nevedre!**
-
-**Mentés:** `Ctrl+O`, `Enter`, `Ctrl+X`
-
-**Aktiválás:**
-```bash
-# Symlink létrehozása
-sudo ln -s /etc/nginx/sites-available/taskanalysis /etc/nginx/sites-enabled/
-
-# Default site törlése
-sudo rm /etc/nginx/sites-enabled/default
-
-# Nginx config teszt
-sudo nginx -t
-# Kimenet: syntax is ok, test is successful
-
-# Nginx restart
-sudo systemctl restart nginx
-```
-
-**Teszt:**
-```bash
-curl http://yourdomain.com
-# Működnie kell!
-```
+Saját domain esetén a `frontend/nginx.conf` `server_name` és tanúsítvány-útvonal sorait is át kell írni. A fájl az image-be kerül, ezért a módosítás után újra kell építeni a frontendet (a lenti `--build` ezt elvégzi).
 
 ### 4.3. SSL/HTTPS beállítása (Let's Encrypt - INGYEN!)
 
+Tanúsítvány nélkül a frontend konténer nem tud elindulni, mert az Nginx betölti a `/etc/letsencrypt` alatti fájlokat. A tanúsítványt ezért a hoston kell kérni. A certbot a 80-as portot használja, ezért a hookok a kérés és minden későbbi megújítás idejére leállítják a frontendet. A certbot elmenti a hookokat, így az automatikus megújítás is használja őket.
+
 ```bash
 # Certbot futtatása
-sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+sudo certbot certonly --standalone -d yourdomain.com \
+  --pre-hook "docker stop taskanalysis-frontend-prod || true" \
+  --post-hook "docker start taskanalysis-frontend-prod || true"
 
-# Kérdések:
-# Email cím: youremail@gmail.com
-# Terms of Service: Y (yes)
-# Share email: N (no)
-
-# Certbot automatikusan:
-# 1. SSH tanúsítványt generál
-# 2. Nginx config frissítése HTTPS-re
-# 3. Automatikus renewal beállítása
+# Frontend építése és indítása: a konténer csak olvashatóan csatolja a /etc/letsencrypt mappát
+docker-compose -f docker-compose.prod.yml up -d --build frontend
 
 # Ellenőrzés
 sudo certbot certificates
+docker ps
 
 # Tesztelés
 curl https://yourdomain.com
@@ -400,6 +317,7 @@ curl https://yourdomain.com
 ```
 
 **Auto-renewal teszt:**
+
 ```bash
 sudo certbot renew --dry-run
 # Sikeres: automatikus megújítás működik!
@@ -412,7 +330,7 @@ sudo certbot renew --dry-run
 ### 5.1. Teljes teszt
 
 **Nyisd meg böngészőben:**
-- `http://yourdomain.com` vagy `http://YOUR_ELASTIC_IP`
+- `https://yourdomain.com`
 - Regisztráció működik? ✅
 - Bejelentkezés működik? ✅
 - Tasks létrehozás? ✅
@@ -448,6 +366,8 @@ df -h
 ## 🔄 FÁZIS 6: Frissítés / Deployment
 
 **Amikor új kódot töltöttél fel GitHub-ra:**
+
+> **Frissítés előtt:** a `docker-compose.prod.yml` megköveteli a `MYSQL_ROOT_PASSWORD`, `MYSQL_PASSWORD`, `JWT_SECRET` és `MAIL_PASSWORD` változót. Ha valamelyik hiányzik az éles `.env`-ből, minden compose parancs hibával leáll. A MySQL a jelszavakat csak üres volume-nál állítja be: meglévő adatbázisnál a korábbi jelszót kell megadni, vagy a jelszót a MySQL-ben is módosítani kell.
 
 ```bash
 # SSH-val az AWS szerverre
@@ -594,7 +514,7 @@ du -sh /var/lib/docker
 
 Pre-deployment:
 - [ ] AWS account létrehozva
-- [ ] Domain név megvásárolva (opcionális)
+- [ ] Domain név megvásárolva
 - [ ] GitHub repo up-to-date
 
 EC2 Setup:
@@ -607,7 +527,6 @@ Server Configuration:
 - [ ] Docker telepítve
 - [ ] Docker Compose telepítve
 - [ ] Swap file létrehozva (2GB)
-- [ ] Nginx telepítve
 - [ ] Git telepítve
 
 Application:
@@ -618,7 +537,7 @@ Application:
 
 Domain & SSL:
 - [ ] DNS A record beállítva
-- [ ] Nginx site config létrehozva
+- [ ] `frontend/nginx.conf` a saját domainre beállítva
 - [ ] SSL tanúsítvány (Certbot)
 - [ ] HTTPS működik
 
