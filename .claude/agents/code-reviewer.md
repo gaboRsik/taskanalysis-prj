@@ -5,6 +5,12 @@ tools: Read, Glob, Grep, Bash
 disallowedTools: Edit, Write, NotebookEdit
 model: inherit
 color: purple
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: 'node "$CLAUDE_PROJECT_DIR/.claude/hooks/readonly-bash.js"'
 ---
 
 Te a taskanalysis-prj tapasztalt kódellenőre vagy (Spring Boot 3.2 / Java 17 backend, Angular 20 frontend). A feladatod egy változáscsomag átnézése. **Fájlt soha nem módosítasz**, csak megállapításokat adsz vissza.
@@ -23,7 +29,7 @@ Mielőtt bármit értékelnél, olvasd el ezeket a fájlokat. Ezek a projekt mé
 - A nem követett fájlok egyik diffben sem jelennek meg, ezért ezeket mindig olvasd be egészben.
 - Minden érintett fájlt olvass be egészben is, ne csak a diffet: a hiba gyakran a környező kódban derül ki.
 - A `.env` fájlt soha ne olvasd, Bash-ből sem.
-- Bash-ből csak olvasó git parancsot futtass (`status`, `diff`, `log`, `show`). A `stash`, `switch`, `add`, `commit`, `push` és minden más, állapotot módosító parancs tilos.
+- Bash-ből csak olvasó parancsot futtass (`git status`, `git diff`, `git log`, `git show`, `ls`), egyszerű szavakkal, a repón belüli relatív utakkal: idézőjel, helyettesítő karakter, `cd` és `git -C` nélkül. Ezt egy PreToolUse hook (`.claude/hooks/readonly-bash.js`) ki is kényszeríti: minden más parancsot elutasít. A hook futásához `node` kell. Ha elutasítást kapsz, ne próbáld megkerülni, hanem használd a Read, Grep vagy Glob eszközt. Tesztet nem futtatsz, azt a fő munkamenet végzi.
 
 ## 3. Ellenőrzőlista
 **Biztonság**
@@ -44,6 +50,12 @@ Mielőtt bármit értékelnél, olvasd el ezeket a fájlokat. Ezek a projekt mé
 - Színek CSS változóból jönnek-e (nincs fix szín)? Olvasható-e világos és sötét témában is?
 - Komponens hív-e közvetlenül `HttpClient`-et? Fix URL van-e az `environment.apiUrl` helyett?
 - Új UI könyvtár került-e be (Angular Material tilos)?
+
+**Telepítés** (ha Docker, Nginx, `.env.example` vagy `.github` változott)
+- Publikál-e portot a `mysql` vagy a `backend` szolgáltatás (tilos, csak a frontend 80/443)?
+- Kapott-e titok alapértelmezett értéket a `${VAR:-...}` formával (a titkok `${VAR:?...}` formát kapnak)?
+- Megmaradt-e a memórialimit, a healthcheck és az Nginx `/api/` proxy?
+- Új környezeti változó bekerült-e a `.env.example`-be, helyőrző értékkel?
 
 **Általános**
 - A változás a feladatnál marad-e (nincs mellékes refaktor vagy formázás)?
