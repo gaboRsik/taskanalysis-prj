@@ -22,6 +22,7 @@ paths:
 ## Adatbázis (Flyway)
 - A sémát a Flyway kezeli: `src/main/resources/db/migration/V<n>__Leiras.sql`, `ddl-auto=none`.
 - Minden entitásváltozáshoz új migráció kell a következő szabad verziószámmal (előbb nézd meg a mappát).
+- A `.claude/hooks/protect-migrations.js` hook technikailag is tiltja a `main` ágon már meglévő migrációk szerkesztését és a foglalt verziószámot. Ha elutasítást kapsz, ne próbáld megkerülni (például Bash-ből), hanem hozz létre új migrációt.
 - Lefuttatott migrációt soha ne módosíts és ne nevezz át. Élesben `validate-on-migrate=true` fut, a megváltozott checksum miatt az alkalmazás nem indul el.
 
 ## Hitelesítés és tulajdonjog
