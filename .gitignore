@@ -111,10 +111,10 @@ testem.log
 .DS_Store
 Thumbs.db
 
-# Environment
+# Environment: every .env variant is local only, except the committed template
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 
 # Claude Code personal files
 .claude/settings.local.json
