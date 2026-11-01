@@ -326,7 +326,7 @@ class TemplateServiceTest {
         testRequest.setTemplateSubtasks(List.of(new TemplateSubtaskDTO(1, 8, null)));
         when(templateRepository.findByIdAndUserWithSubtasks(1L, testUser)).thenReturn(Optional.of(testTemplate));
         when(categoryRepository.findById(2L)).thenReturn(Optional.of(otherCategory));
-        when(templateRepository.existsByUserAndCategoryAndName(testUser, otherCategory, "Updated Endpoint")).thenReturn(false);
+        when(templateRepository.existsByUserAndCategoryAndNameAndIdNot(testUser, otherCategory, "Updated Endpoint", 1L)).thenReturn(false);
         when(templateRepository.save(any(TaskTemplate.class))).thenReturn(testTemplate);
 
         // Capture the collection size at flush time: the flush is what deletes the old subtasks
@@ -352,7 +352,7 @@ class TemplateServiceTest {
         assertSame(testTemplate, testTemplate.getTemplateSubtasks().get(0).getTemplate());
         verify(templateRepository).findByIdAndUserWithSubtasks(1L, testUser);
         verify(categoryRepository).findById(2L);
-        verify(templateRepository).existsByUserAndCategoryAndName(testUser, otherCategory, "Updated Endpoint");
+        verify(templateRepository).existsByUserAndCategoryAndNameAndIdNot(testUser, otherCategory, "Updated Endpoint", 1L);
 
         // Old subtasks must be flushed out before the new ones are added (unique_template_subtask)
         assertEquals(List.of(0), sizeAtFlush);
@@ -373,7 +373,7 @@ class TemplateServiceTest {
             () -> templateService.updateTemplate(999L, testRequest, testUser)
         );
         
-        assertTrue(exception.getMessage().contains("Template not found with id: 999"));
+        assertEquals("Nem található sablon ezzel az azonosítóval: 999", exception.getMessage());
         verify(templateRepository).findByIdAndUserWithSubtasks(999L, testUser);
         verify(entityManager, never()).flush();
         verify(templateRepository, never()).save(any());
@@ -386,7 +386,7 @@ class TemplateServiceTest {
         testRequest.setName("Conflicting Name");
         when(templateRepository.findByIdAndUserWithSubtasks(1L, testUser)).thenReturn(Optional.of(testTemplate));
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(testCategory));
-        when(templateRepository.existsByUserAndCategoryAndName(testUser, testCategory, "Conflicting Name")).thenReturn(true);
+        when(templateRepository.existsByUserAndCategoryAndNameAndIdNot(testUser, testCategory, "Conflicting Name", 1L)).thenReturn(true);
 
         // Act & Assert
         BusinessException exception = assertThrows(
@@ -394,10 +394,10 @@ class TemplateServiceTest {
             () -> templateService.updateTemplate(1L, testRequest, testUser)
         );
         
-        assertTrue(exception.getMessage().contains("A template with name 'Conflicting Name' already exists in this category"));
+        assertEquals("Már létezik 'Conflicting Name' nevű sablon ebben a kategóriában", exception.getMessage());
         verify(templateRepository).findByIdAndUserWithSubtasks(1L, testUser);
         verify(categoryRepository).findById(1L);
-        verify(templateRepository).existsByUserAndCategoryAndName(testUser, testCategory, "Conflicting Name");
+        verify(templateRepository).existsByUserAndCategoryAndNameAndIdNot(testUser, testCategory, "Conflicting Name", 1L);
         verify(entityManager, never()).flush();
         verify(templateRepository, never()).save(any());
     }
@@ -423,10 +423,104 @@ class TemplateServiceTest {
             () -> templateService.updateTemplate(1L, testRequest, testUser)
         );
         
-        assertTrue(exception.getMessage().contains("Category does not belong to the current user"));
+        assertEquals("A kategória nem az aktuális felhasználóhoz tartozik", exception.getMessage());
         verify(templateRepository).findByIdAndUserWithSubtasks(1L, testUser);
         verify(categoryRepository).findById(3L);
         verify(entityManager, never()).flush();
+        verify(templateRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw BusinessException when moving template to a category with the same name")
+    void testUpdateTemplateCategoryChangeNameConflict() {
+        // Arrange: name is unchanged, only the category changes
+        testRequest.setCategoryId(2L);
+        when(templateRepository.findByIdAndUserWithSubtasks(1L, testUser)).thenReturn(Optional.of(testTemplate));
+        when(categoryRepository.findById(2L)).thenReturn(Optional.of(otherCategory));
+        when(templateRepository.existsByUserAndCategoryAndNameAndIdNot(testUser, otherCategory, "API Endpoint", 1L)).thenReturn(true);
+
+        // Act & Assert
+        BusinessException exception = assertThrows(
+            BusinessException.class,
+            () -> templateService.updateTemplate(1L, testRequest, testUser)
+        );
+
+        assertEquals("Már létezik 'API Endpoint' nevű sablon ebben a kategóriában", exception.getMessage());
+        verify(entityManager, never()).flush();
+        verify(templateRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should move template to another category when the name is free there")
+    void testUpdateTemplateCategoryChangeWithoutConflict() {
+        // Arrange: name is unchanged, only the category changes
+        testRequest.setCategoryId(2L);
+        when(templateRepository.findByIdAndUserWithSubtasks(1L, testUser)).thenReturn(Optional.of(testTemplate));
+        when(categoryRepository.findById(2L)).thenReturn(Optional.of(otherCategory));
+        when(templateRepository.existsByUserAndCategoryAndNameAndIdNot(testUser, otherCategory, "API Endpoint", 1L)).thenReturn(false);
+        when(templateRepository.save(any(TaskTemplate.class))).thenReturn(testTemplate);
+
+        // Act
+        TemplateResponse result = templateService.updateTemplate(1L, testRequest, testUser);
+
+        // Assert
+        assertEquals("API Endpoint", result.getName());
+        assertEquals(2L, result.getCategoryId());
+        verify(templateRepository).existsByUserAndCategoryAndNameAndIdNot(testUser, otherCategory, "API Endpoint", 1L);
+    }
+
+    @Test
+    @DisplayName("Should exclude the template itself from the name conflict check")
+    void testUpdateTemplateExcludesItselfFromConflictCheck() {
+        // Arrange: the template must not conflict with itself
+        when(templateRepository.findByIdAndUserWithSubtasks(1L, testUser)).thenReturn(Optional.of(testTemplate));
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(testCategory));
+        when(templateRepository.existsByUserAndCategoryAndNameAndIdNot(testUser, testCategory, "API Endpoint", 1L)).thenReturn(false);
+        when(templateRepository.save(any(TaskTemplate.class))).thenReturn(testTemplate);
+
+        // Act
+        TemplateResponse result = templateService.updateTemplate(1L, testRequest, testUser);
+
+        // Assert
+        assertEquals("API Endpoint", result.getName());
+        verify(templateRepository).existsByUserAndCategoryAndNameAndIdNot(testUser, testCategory, "API Endpoint", 1L);
+        verify(templateRepository, never()).existsByUserAndCategoryAndName(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("Should throw ResourceNotFoundException when updating with non-existing category")
+    void testUpdateTemplateCategoryNotFound() {
+        // Arrange
+        testRequest.setCategoryId(999L);
+        when(templateRepository.findByIdAndUserWithSubtasks(1L, testUser)).thenReturn(Optional.of(testTemplate));
+        when(categoryRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(
+            ResourceNotFoundException.class,
+            () -> templateService.updateTemplate(1L, testRequest, testUser)
+        );
+
+        assertEquals("Nem található kategória ezzel az azonosítóval: 999", exception.getMessage());
+        verify(templateRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw BusinessException when updating with inaccessible tags")
+    void testUpdateTemplateInaccessibleTags() {
+        // Arrange
+        testRequest.setTemplateSubtasks(List.of(new TemplateSubtaskDTO(1, 5, List.of(10L, 11L))));
+        when(templateRepository.findByIdAndUserWithSubtasks(1L, testUser)).thenReturn(Optional.of(testTemplate));
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(testCategory));
+        when(subtaskTagRepository.findByIdsVisibleToUser(List.of(10L, 11L), 1L)).thenReturn(List.of());
+
+        // Act & Assert
+        BusinessException exception = assertThrows(
+            BusinessException.class,
+            () -> templateService.updateTemplate(1L, testRequest, testUser)
+        );
+
+        assertEquals("Néhány címke nem érhető el ennek a felhasználónak", exception.getMessage());
         verify(templateRepository, never()).save(any());
     }
 

@@ -123,20 +123,20 @@ public class TemplateService {
         log.info("Updating template {} for user: {}", id, user.getEmail());
 
         TaskTemplate template = templateRepository.findByIdAndUserWithSubtasks(id, user)
-                .orElseThrow(() -> new ResourceNotFoundException("Template not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Nem található sablon ezzel az azonosítóval: " + id));
 
         // Validate category (required)
         Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + request.getCategoryId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Nem található kategória ezzel az azonosítóval: " + request.getCategoryId()));
         
         if (!category.getUser().getId().equals(user.getId())) {
-            throw new BusinessException("Category does not belong to the current user");
+            throw new BusinessException("A kategória nem az aktuális felhasználóhoz tartozik");
         }
 
-        // Check if new name conflicts with another template in the same category
-        if (!template.getName().equals(request.getName()) && 
-            templateRepository.existsByUserAndCategoryAndName(user, category, request.getName())) {
-            throw new BusinessException("A template with name '" + request.getName() + "' already exists in this category");
+        // Check for a conflict with another template; the DB collation ignores case and accents,
+        // so the template itself must be excluded instead of comparing the names in Java
+        if (templateRepository.existsByUserAndCategoryAndNameAndIdNot(user, category, request.getName(), id)) {
+            throw new BusinessException("Már létezik '" + request.getName() + "' nevű sablon ebben a kategóriában");
         }
 
         // Update template fields
@@ -162,7 +162,7 @@ public class TemplateService {
                 if (dto.getTagIds() != null && !dto.getTagIds().isEmpty()) {
                     List<SubtaskTag> tags = subtaskTagRepository.findByIdsVisibleToUser(dto.getTagIds(), user.getId());
                     if (tags.size() != dto.getTagIds().size()) {
-                        throw new BusinessException("Some tags are not accessible to this user");
+                        throw new BusinessException("Néhány címke nem érhető el ennek a felhasználónak");
                     }
                     tags.forEach(templateSubtask::addTag);
                 }
