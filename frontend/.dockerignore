@@ -31,5 +31,6 @@ README.md
 *.md
 
 # Environment files (never include real .env in image)
-.env
-.env.local
+**/.env
+**/.env.*
+!**/.env.example

@@ -26,3 +26,8 @@ src/test/
 # Documentation
 README.md
 *.md
+
+# Environment files (never include real .env in image)
+**/.env
+**/.env.*
+!**/.env.example
