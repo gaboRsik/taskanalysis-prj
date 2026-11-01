@@ -25,6 +25,19 @@ A felhasználó által adott leírás (ha van): $ARGUMENTS
   - Ha korábbról megvolt: továbbléphetsz, de a PR leírásában és a merge kérdésnél jelezd (lásd 5. lépés).
 - Ha a build elbukik, ne menj tovább: javítsd ki, vagy jelezd a felhasználónak.
 
+## 2/b. Code review a code-reviewer subagenttel
+- A commit előtt futtasd a `code-reviewer` subagentet. A delegáló üzenetben add meg: az ág nevét, a feladat egy mondatos leírását, és hogy a `git status --short`, a `git diff main...HEAD` és a `git diff HEAD` alapján nézze át a változásokat, a nem követett fájlokat pedig olvassa be egészben.
+- Az ítélet alapján:
+  - **BLOKKOLÓ:** ne menj tovább. Javítsd a blokkoló pontokat.
+  - **JAVÍTANDÓ:** a feladathoz tartozó pontokat javítsd. A feladaton kívüli pontokat ne javítsd, hanem írd be a PR leírás „Kockázatok / figyelendő” részébe „Későbbre” címkével.
+  - **MEHET:** folytasd.
+- A javítatlanul hagyott apróságokat bármely ítéletnél írd be a PR leírás „Code review” részébe.
+- A reviewer megállapításait a kulcspontoknál ellenőrizd a kódban, mielőtt javítasz: a subagent is tévedhet. A tévesnek ítélt találatot ne javítsd, hanem indoklással írd be a PR leírás „Code review” részébe. Ha így nem marad valós blokkoló pont, továbbléphetsz, de az elvetett blokkoló pontot és az eredeti ítéletet a merge kérdésnél is jelezd.
+- Minden javítás után futtasd újra a 2. lépés ellenőrzéseit és a reviewert, hogy a PR-ba és a merge kérdésbe a végső állapot eredménye kerüljön. Újrafuttatáskor add át a reviewernek a már elvetett találatokat az indoklással együtt. Ezeket csak akkor jelentse újra, ha az indoklást hibásnak tartja.
+- A reviewert legfeljebb kétszer futtasd újra. Ezután már ne javíts kódot:
+  - Ha a végső ítélet JAVÍTANDÓ, a nyitott pontokat jelezd a PR leírásában és a merge kérdésnél.
+  - Ha a végső ítélet BLOKKOLÓ, és marad valós blokkoló pont, állj meg, és kérdezd meg a felhasználót. Ha a továbblépés mellett dönt, a BLOKKOLÓ ítéletet és a nyitott pontokat jelezd a PR leírásában és a merge kérdésnél is.
+
 ## 3. Commit
 - Logikai egységenként commitolj, Conventional Commits formátumban, angolul (`feat: ...`, `fix: ...`).
 - Csak a feladathoz tartozó fájlokat add hozzá, név szerint. Ne használd a `git add -A` parancsot.
@@ -40,6 +53,10 @@ Mit és miért változtattunk (1-3 mondat).
 
 ## Változások
 - ...
+
+## Code review
+- A code-reviewer ítélete és a javított pontok röviden
+- Nyitott pontok, javítatlan apróságok, és a tévesnek ítélt találatok indoklással, ha vannak
 
 ## Tesztelés
 - Lefuttatott parancsok és eredményük (pl. `mvn test`: 12 teszt, mind sikeres)
@@ -58,7 +75,8 @@ A kérdés előtt MINDIG írd ki magyarul, ebben a sorrendben:
 1. **A PR linkje** és **a változások átnézésére szolgáló link**: `<PR URL>/files` („Files changed” fül). Kérd meg a felhasználót, hogy a merge előtt nézze át.
 2. **Rövid összefoglaló** a változásokról (2-4 pont).
 3. **Tesztek eredménye** (pl. `mvn test`: 42 teszt, 42 sikeres).
-4. **Figyelmeztetés, ha van bukott teszt vagy build hiba.** Ilyenkor a kérdés előtt jól láthatóan, külön blokkban írd ki:
+4. **A code review ítélete** (MEHET / JAVÍTANDÓ / BLOKKOLÓ), a „Későbbre” hagyott és a nyitott pontok listája, valamint az elvetett blokkoló pontok egy mondatos indoklással és az eredeti ítélettel, ha vannak.
+5. **Figyelmeztetés, ha van bukott teszt vagy build hiba.** Ilyenkor a kérdés előtt jól láthatóan, külön blokkban írd ki:
 
 > ⚠️ **FIGYELEM: piros tesztek vannak!**
 > - `<TesztOsztály#metódus>`: a mostani változás okozta / már korábban is bukott
